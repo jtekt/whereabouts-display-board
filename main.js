@@ -4,6 +4,8 @@ const socketio = require('socket.io')
 const cors = require('cors')
 const bodyParser = require('body-parser')
 const dotenv = require('dotenv')
+const ws_auth = require('@moreillon/socketio_authentication_middleware')
+
 
 dotenv.config()
 
@@ -17,11 +19,10 @@ exports.io = io
 app.use(cors())
 app.use(bodyParser.json())
 
-
-
 // Express
 const express_users_controller = require('./express_controllers/users.js')
 const express_groups_controller = require('./express_controllers/groups.js')
+const express_auth_controller = require('./express_controllers/auth.js')
 
 
 app.get('/', (req, res) => {
@@ -43,19 +44,23 @@ app.route('/users/:user_id')
 app.route('/members/:user_id/groups')
   .get(express_groups_controller.get_groups_of_user)
 
-// TODO: Route for login
+app.route('/login')
+  .post(express_auth_controller.login)
 
 // Websockets
 const ws_users_controllers = require('./ws_controllers/users.js')
-const groups_controllers = require('./ws_controllers/groups.js')
+const ws_groups_controllers = require('./ws_controllers/groups.js')
+const ws_auth_controllers = require('./ws_controllers/auth.js')
 
 io.on('connection', (socket) => {
   console.log('[WS] a user connected')
 
-  socket.on('authenticate', () => console.log('Auth')) // THIS WILL BE DONE USING THE AUTH MIDDLEWARE
+  socket.use(ws_auth(socket, ws_auth_controllers.auth))
+
+
 
   socket.on('update_user', ws_users_controllers.update_user)
-  socket.on('get_members_of_group', groups_controllers.get_members_of_group(socket))
+  socket.on('get_members_of_group', ws_groups_controllers.get_members_of_group(socket))
 })
 
 // Start listening

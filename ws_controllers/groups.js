@@ -5,7 +5,7 @@ const axios = require('axios')
 let manage_rooms = (socket, group_id) => {
   // leave previous room
   for (var room in socket.rooms) {
-    if(room !== socket.id) {
+    if(room !== socket.id && room !== 'authenticated') {
       console.log(`Socket ${socket.id} left room ${room}`)
       delete room
     }

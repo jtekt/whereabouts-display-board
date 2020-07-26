@@ -1,0 +1,18 @@
+stages:
+  - containerization
+
+variables:
+  APPLICATION_NAME: whereabouts
+  DOCKER_IMAGE: ${DOCKER_HUB_USERNAME}/${APPLICATION_NAME}
+
+containerization:
+  stage: containerization
+  script:
+    # Docker hub login
+    - echo "${DOCKER_HUB_PASSWORD}" | docker login --username ${DOCKER_HUB_USERNAME} --password-stdin
+    # Build the docker image. Pass proxy variables if set
+    - docker build -t ${DOCKER_IMAGE} .
+    # Pushing image to registry
+    - docker push ${DOCKER_IMAGE}
+    # Cleanup
+    - docker image rm ${DOCKER_IMAGE}
