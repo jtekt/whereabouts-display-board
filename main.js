@@ -55,9 +55,7 @@ const ws_auth_controllers = require('./ws_controllers/auth.js')
 io.on('connection', (socket) => {
   console.log('[WS] a user connected')
 
-  socket.use(ws_auth(socket, ws_auth_controllers.auth))
-
-
+  socket.use(ws_auth(socket, ws_auth_controllers.auth(socket)))
 
   socket.on('update_user', ws_users_controllers.update_user)
   socket.on('get_members_of_group', ws_groups_controllers.get_members_of_group(socket))
