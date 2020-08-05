@@ -75,6 +75,8 @@ exports.update_user = (req, res) => {
     // respond with the user
     res.send(user)
 
+    socket.emit('debug', 'User patched')
+
     // Update rooms related to user
     update_rooms_of_user(record, jwt)
 
