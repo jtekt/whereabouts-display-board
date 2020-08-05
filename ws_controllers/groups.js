@@ -14,9 +14,6 @@ let manage_rooms = (socket, group_id) => {
   // Joining new room
   socket.join(group_id, () => {
     console.log(`Socket ${socket.id} has joined room ${group_id}`)
-
-    // DEBUG
-    socket.emit('debug', {rooms: socket.rooms})
   })
 }
 

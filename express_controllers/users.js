@@ -9,12 +9,10 @@ let update_rooms_of_user = (user_record, jwt) => {
   let user = user_record._fields[user_record._fieldLookup.employee]
 
   let user_id = user.identity.low
-  if(!user_id) return console.log(`User does not have an ID`)
+  if(!user_id && user_id !== 0) return console.log(`User does not have an ID`)
 
   let url = `${process.env.GROUP_MANAGER_API_URL}/members/${user_id}/groups`
   let options = { headers: {"Authorization" : `Bearer ${jwt}`} }
-
-  io.emit('debug', 'User patched')
 
   axios.get(url, options)
   .then((response) => {
@@ -73,8 +71,6 @@ exports.update_user = (req, res) => {
 
     // respond with the user
     res.send(user)
-
-    io.emit('debug', {message: 'User patched', user: user})
 
     // Update rooms related to user
     update_rooms_of_user(record, jwt)
