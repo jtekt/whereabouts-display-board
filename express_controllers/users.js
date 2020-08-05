@@ -22,7 +22,6 @@ let update_rooms_of_user = (user_record, jwt) => {
     let records = response.data
     console.log(`Updating ${records.length} rooms (groups) for user ${user_id}`)
 
-    io.emit('debug', 'User patched')
 
     records.forEach((record) => {
 
@@ -75,7 +74,7 @@ exports.update_user = (req, res) => {
     // respond with the user
     res.send(user)
 
-    io.emit('debug', 'User patched')
+    io.emit('debug', {message: 'User patched', user: user})
 
     // Update rooms related to user
     update_rooms_of_user(record, jwt)
