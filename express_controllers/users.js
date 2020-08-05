@@ -14,6 +14,7 @@ let update_rooms_of_user = (user_record, jwt) => {
   let url = `${process.env.GROUP_MANAGER_API_URL}/members/${user_id}/groups`
   let options = { headers: {"Authorization" : `Bearer ${jwt}`} }
 
+  socket.emit('debug', {room_update_url:url})
 
   axios.get(url, options)
   .then((response) => {
@@ -21,10 +22,14 @@ let update_rooms_of_user = (user_record, jwt) => {
     let records = response.data
     console.log(`Updating ${records.length} rooms (groups) for user ${user_id}`)
 
+    socket.emit('debug', {group_records:records})
+
     records.forEach((record) => {
 
       let group = record._fields[record._fieldLookup.group]
       let group_id = group.identity.low
+
+
 
       // needs to be an array of users
       io.in(String(group_id)).emit('members_of_group',[user_record])
