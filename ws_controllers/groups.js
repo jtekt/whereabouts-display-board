@@ -14,6 +14,9 @@ let manage_rooms = (socket, group_id) => {
   // Joining new room
   socket.join(group_id, () => {
     console.log(`Socket ${socket.id} has joined room ${group_id}`)
+
+    // DEBUG
+    socket.emit('rooms', socket.rooms)
   })
 }
 
@@ -26,7 +29,6 @@ exports.get_members_of_group = (socket) => {
     console.log(`Members of group ${group_id} requested`)
 
     // Fetching members using the group manager API
-    // THIS WILL NEED AUTHENTICATION
     let url = `${process.env.GROUP_MANAGER_API_URL}/groups/${group_id}/members`
     axios.get(url, {headers: {Authorization: `Bearer ${socket.jwt}`}})
     .then((response) => {

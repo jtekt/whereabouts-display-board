@@ -62,7 +62,7 @@ exports.update_user = (req, res) => {
 
   axios.patch(url, body, { headers: {"Authorization" : `Bearer ${jwt}`} })
   .then((response) => {
-    console.log(`User ${user_id} has been patched`)
+    console.log(`User ${user_id} has been PATCHed`)
 
     let record = response.data[0]
     let user = record._fields[record._fieldLookup.employee]
