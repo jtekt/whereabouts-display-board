@@ -48,7 +48,6 @@ app.route('/login')
   .post(express_auth_controller.login)
 
 // Websockets
-const ws_users_controllers = require('./ws_controllers/users.js')
 const ws_groups_controllers = require('./ws_controllers/groups.js')
 const ws_auth_controllers = require('./ws_controllers/auth.js')
 
@@ -58,7 +57,6 @@ io.on('connection', (socket) => {
   // This is too complex
   socket.use(ws_auth(socket, ws_auth_controllers.auth(socket)))
 
-  socket.on('update_user', ws_users_controllers.update_user)
   socket.on('get_members_of_group', ws_groups_controllers.get_members_of_group(socket))
 })
 
