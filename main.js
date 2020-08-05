@@ -55,6 +55,7 @@ const ws_auth_controllers = require('./ws_controllers/auth.js')
 io.on('connection', (socket) => {
   console.log('[WS] a user connected')
 
+  // This is too complex
   socket.use(ws_auth(socket, ws_auth_controllers.auth(socket)))
 
   socket.on('update_user', ws_users_controllers.update_user)

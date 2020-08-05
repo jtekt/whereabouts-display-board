@@ -4,7 +4,7 @@ const axios = require('axios')
 
 dotenv.config()
 
-let update_rooms_of_user = (user_record) => {
+let update_rooms_of_user = (user_record, jwt) => {
 
   let user = user_record._fields[user_record._fieldLookup.employee]
 
@@ -12,11 +12,15 @@ let update_rooms_of_user = (user_record) => {
   if(!user_id) return console.log(`User does not have an ID`)
 
   let url = `${process.env.GROUP_MANAGER_API_URL}/members/${user_id}/groups`
+  let options = { headers: {"Authorization" : `Bearer ${jwt}`} }
 
-  axios.get(url)
+
+  axios.get(url, options)
   .then((response) => {
 
     let records = response.data
+    console.log(`Updating ${records.length} rooms (groups) for user ${user_id}`)
+
     records.forEach((record) => {
 
       let group = record._fields[record._fieldLookup.group]
@@ -28,12 +32,13 @@ let update_rooms_of_user = (user_record) => {
     })
   })
   .catch( (error) => {
-    console.log(error)
+    console.log(`Error Updating rooms for user ${user_id}: ${error}`)
   })
+
 
 }
 
-exports.update_user = (req,res) => {
+exports.update_user = (req, res) => {
 
   if(!req.headers.authorization) {
     console.log(`Authorization header not set`)
@@ -53,7 +58,9 @@ exports.update_user = (req,res) => {
     presence: req.body.presence,
   }
 
-  axios.patch(url,body, { headers: {"Authorization" : `Bearer ${jwt}`} })
+  console.log(`PATCHing user ${user_id}`)
+
+  axios.patch(url, body, { headers: {"Authorization" : `Bearer ${jwt}`} })
   .then((response) => {
     console.log(`User ${user_id} has been patched`)
 
@@ -63,14 +70,14 @@ exports.update_user = (req,res) => {
     // respond with the user
     res.send(user)
 
-    update_rooms_of_user(record)
-
-
     // Update rooms related to user
+    update_rooms_of_user(record, jwt)
+
   })
   .catch((error) => {
-    console.log(error)
     res.status(500).send(error)
+    if(error.response) console.log(error.response.data)
+    else console.log(error)
   })
 
 }
