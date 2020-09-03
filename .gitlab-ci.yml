@@ -11,7 +11,7 @@ containerization:
   script:
     # Docker hub login
     - echo "${DOCKER_HUB_PASSWORD}" | docker login --username ${DOCKER_HUB_USERNAME} --password-stdin
-    # Build the docker image. Pass proxy variables if set
+    # Build the docker image
     - docker build -t ${DOCKER_IMAGE} .
     # Pushing image to registry
     - docker push ${DOCKER_IMAGE}
@@ -21,16 +21,8 @@ containerization:
 deployment:
   stage: deployment
   script:
-    # create/update the deployment
-    - envsubst < kubernetes/deployment.yml | kubectl apply -f -
     # Pull latest image by restarting the deployment
     - kubectl rollout restart deployment/${APPLICATION_NAME}
-    # if a domain name is specified, serve app through an ingress
-    - >
-      if [ -z ${CERTIFICATE_DOMAIN} ];
-      then echo "CERTIFICATE_DOMAIN not set, skipping creation of ingress";
-      else envsubst < kubernetes/ingress.yml | kubectl apply -f -;
-      fi
   environment:
     name: production
     kubernetes:
