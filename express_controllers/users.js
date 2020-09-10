@@ -74,6 +74,8 @@ exports.update_user = (req, res) => {
 
     // Use the provided user ID if available. Otherwise use that of the JWT
     let user_id = req.params.user_id
+      || req.params.query.user_id
+      || req.body.user_id
       || response.data.identity.low
 
     let url = `${process.env.EMPLOYEE_MANAGER_API_URL}/employees/${user_id}`
