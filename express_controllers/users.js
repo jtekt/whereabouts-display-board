@@ -69,11 +69,18 @@ exports.update_user = (req, res) => {
   axios.get(jwt_decoding_url,{params: {jwt: jwt}})
   .then( (response) => {
 
+
     // Use the provided user ID if available. Otherwise use that of the JWT
     let user_id = req.params.user_id
-      || req.params.query.user_id
+      || req.query.user_id
       || req.body.user_id
       || response.data.identity.low
+
+    if(!user_id) {
+      console.log(`User ID not specified`)
+      return res.status(400).send('User ID not specified')
+    }
+
 
     let url = `${process.env.EMPLOYEE_MANAGER_API_URL}/employees/${user_id}`
     let body = {
@@ -82,6 +89,9 @@ exports.update_user = (req, res) => {
     }
 
     console.log(`Updating user ${user_id}`)
+
+
+
 
     axios.patch(url, body, { headers: {"Authorization" : `Bearer ${jwt}`} })
     .then((response) => {
@@ -98,13 +108,18 @@ exports.update_user = (req, res) => {
 
     })
     .catch((error) => {
-      res.status(500).send(error)
+
       if(error.response) console.log(error.response.data)
       else console.log(error)
+
+      return res.status(500).send(error)
     })
 
   })
-  .catch( (error) => { res.status(403).send(error) })
+  .catch( (error) => {
+    console.log(error)
+    return res.status(403).send(error)
+  })
 
 }
 
