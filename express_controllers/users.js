@@ -123,6 +123,8 @@ exports.update_user = (req, res) => {
 
 }
 
+
+/*
 const driver = require('../neo4j_driver.js')
 
 exports.update_user_direct_db_access = (req, res) => {
@@ -210,3 +212,4 @@ exports.update_user_direct_db_access = (req, res) => {
   .catch( (error) => { res.status(403).send(error) })
 
 }
+*/
