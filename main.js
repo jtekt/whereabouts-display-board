@@ -41,6 +41,7 @@ app.get('/', (req, res) => {
 
 app.route('/users/:user_id')
   .patch(express_users_controller.update_user)
+  //.patch(express_users_controller.update_user_direct_db_access)
   .put(express_users_controller.update_user) // alias
 
 app.route('/update')

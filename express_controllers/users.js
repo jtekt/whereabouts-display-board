@@ -147,16 +147,17 @@ exports.update_user_direct_db_access = (req, res) => {
       || req.body.user_id
       || response.data.identity.low
 
-    console.log(`Updating user ${user_id}`)
+
 
     let new_properties = {
       current_location: req.body.current_location || req.query.current_location,
       presence: req.body.presence || req.query.presence,
     }
 
+    console.log(`Updating user ${user_id} with direct DB access`)
+
     const session = driver.session()
-    session
-    .run(`
+    session.run(`
       // Find the employee using the ID
       MATCH (employee:Employee)
       WHERE id(employee)=toInteger($employee_id)
@@ -167,14 +168,14 @@ exports.update_user_direct_db_access = (req, res) => {
 
       RETURN employee
       `, {
-      employee_id: employee_id,
+      employee_id: user_id,
       properties: new_properties,
     })
     .then(result => {
       let record = result.records[0]
 
       if(!record) res.status(500).send('No records')
-      
+
       let user = record._fields[record._fieldLookup.employee]
 
       // respond with the user
