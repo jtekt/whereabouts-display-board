@@ -5,6 +5,7 @@ const axios = require('axios')
 dotenv.config()
 
 let update_rooms_of_user = (user_record, jwt) => {
+  // Sends a WS event to all members of the room (group) an updated user is part of
 
   let user = user_record._fields[user_record._fieldLookup.employee]
 
@@ -20,13 +21,10 @@ let update_rooms_of_user = (user_record, jwt) => {
     let records = response.data
     console.log(`Updating ${records.length} rooms (groups) for user ${user_id}`)
 
-
     records.forEach((record) => {
 
       let group = record._fields[record._fieldLookup.group]
       let group_id = group.identity.low
-
-
 
       // needs to be an array of users
       io.in(String(group_id)).emit('members_of_group',[user_record])
@@ -42,44 +40,74 @@ let update_rooms_of_user = (user_record, jwt) => {
 
 exports.update_user = (req, res) => {
 
-  if(!req.headers.authorization) {
-    console.log(`Authorization header not set`)
-    return res.status(403).send(`Authorization header not set`)
+  let jwt = req.body.jwt
+    || req.body.token
+    || req.query.jwt
+    || req.query.token
+
+
+  if(!jwt) {
+    // Check if auth header is set
+    if(!req.headers.authorization) {
+      console.log(`JWT not found in query or body and uuthorization header not set`)
+      return res.status(403).send(`JWT not found in query or body and uuthorization header not set`)
+    }
+
+    // Retrieve JWT from auth header
+    jwt = req.headers.authorization.split(" ")[1]
   }
 
-  let jwt = req.headers.authorization.split(" ")[1]
+
+
+
+
+  // If no token, forbid further access
   if(!jwt) {
     console.log(`JWT not found`)
     return res.status(403).send(`JWT not found`)
   }
 
-  let user_id = req.params.user_id
-  let url = `${process.env.EMPLOYEE_MANAGER_API_URL}/employees/${user_id}`
-  let body = {
-    current_location: req.body.current_location,
-    presence: req.body.presence,
-  }
+  // Retrieve the user ID from the JWT
+  let jwt_decoding_url = `${process.env.AUTHENTICATION_API_URL}/user_from_jwt`
+  axios.get(jwt_decoding_url,{params: {jwt: jwt}})
+  .then( (response) => {
 
-  console.log(`PATCHing user ${user_id}`)
+    // Use the provided user ID if available. Otherwise use that of the JWT
+    let user_id = req.params.user_id
+      || response.data.identity.low
 
-  axios.patch(url, body, { headers: {"Authorization" : `Bearer ${jwt}`} })
-  .then((response) => {
-    console.log(`User ${user_id} has been PATCHed`)
+    let url = `${process.env.EMPLOYEE_MANAGER_API_URL}/employees/${user_id}`
+    let body = {
+      current_location: req.body.current_location || req.query.current_location,
+      presence: req.body.presence || req.query.presence,
+    }
 
-    let record = response.data[0]
-    let user = record._fields[record._fieldLookup.employee]
+    console.log(`Updating user ${user_id}`)
 
-    // respond with the user
-    res.send(user)
+    axios.patch(url, body, { headers: {"Authorization" : `Bearer ${jwt}`} })
+    .then((response) => {
+      console.log(`User ${user_id} has been Updated`)
 
-    // Update rooms related to user
-    update_rooms_of_user(record, jwt)
+      let record = response.data[0]
+      let user = record._fields[record._fieldLookup.employee]
+
+      // respond with the user
+      res.send(user)
+
+      // Update rooms related to user
+      update_rooms_of_user(record, jwt)
+
+    })
+    .catch((error) => {
+      res.status(500).send(error)
+      if(error.response) console.log(error.response.data)
+      else console.log(error)
+    })
 
   })
-  .catch((error) => {
-    res.status(500).send(error)
-    if(error.response) console.log(error.response.data)
-    else console.log(error)
-  })
+  .catch( (error) => { res.status(403).send(error) })
+
+
+
 
 }

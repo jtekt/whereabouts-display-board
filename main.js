@@ -37,15 +37,21 @@ app.get('/', (req, res) => {
 })
 
 
-// For people updating themselves using a script or something else
+
+
 app.route('/users/:user_id')
   .patch(express_users_controller.update_user)
+  .put(express_users_controller.update_user) // alias
 
+app.route('/update')
+  .get(express_users_controller.update_user) // alternative so as to use a GET request
+
+// The following routes are just proxies
 app.route('/members/:user_id/groups')
-  .get(express_groups_controller.get_groups_of_user)
+  .get(express_groups_controller.get_groups_of_user) // This is just a proxy
 
 app.route('/login')
-  .post(express_auth_controller.login)
+  .post(express_auth_controller.login)  // This is just a proxy
 
 // Websockets
 const ws_groups_controllers = require('./ws_controllers/groups.js')
