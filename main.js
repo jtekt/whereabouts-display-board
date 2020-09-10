@@ -45,6 +45,7 @@ app.route('/users/:user_id')
 
 app.route('/update')
   .get(express_users_controller.update_user) // alternative so as to use a GET request
+  //.get(express_users_controller.update_user_direct_db_access) // alternative so as to use a GET request
 
 // The following routes are just proxies
 app.route('/members/:user_id/groups')
