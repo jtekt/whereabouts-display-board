@@ -86,6 +86,7 @@ exports.update_user = (req, res) => {
     let body = {
       current_location: req.body.current_location || req.query.current_location,
       presence: req.body.presence || req.query.presence,
+      whereabouts_last_update: new Date(),
     }
 
     console.log(`Updating user ${user_id}`)
