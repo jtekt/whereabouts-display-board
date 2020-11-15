@@ -30,9 +30,9 @@ app.get('/', (req, res) => {
     application_name: '行先掲示板',
     author: 'Maxime MOREILLON',
     version: require('./package.json').version,
-    authentication_api_url: process.env.AUTHENTICATION_API_URL,
-    group_manager_api_url: process.env.GROUP_MANAGER_API_URL,
-    employee_manager_api_url: process.env.EMPLOYEE_MANAGER_API_URL,
+    authentication_api_url: process.env.AUTHENTICATION_API_URL || 'UNDEFINED',
+    group_manager_api_url: process.env.GROUP_MANAGER_API_UR || 'UNDEFINED'L,
+    employee_manager_api_url: process.env.EMPLOYEE_MANAGER_API_URL || 'UNDEFINED',
   })
 })
 
@@ -41,8 +41,8 @@ app.get('/', (req, res) => {
 
 app.route('/users/:user_id')
   .patch(express_users_controller.update_user)
-  //.patch(express_users_controller.update_user_direct_db_access)
   .put(express_users_controller.update_user) // alias
+  //.patch(express_users_controller.update_user_direct_db_access)
 
 app.route('/update')
   .get(express_users_controller.update_user) // alternative so as to use a GET request
