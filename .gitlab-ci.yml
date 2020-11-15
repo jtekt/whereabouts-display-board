@@ -8,6 +8,8 @@ variables:
 
 containerization:
   stage: containerization
+  tags:
+    - moreillon
   script:
     # Docker hub login
     - echo "${DOCKER_HUB_PASSWORD}" | docker login --username ${DOCKER_HUB_USERNAME} --password-stdin
@@ -20,6 +22,8 @@ containerization:
 
 deployment:
   stage: deployment
+  tags:
+    - moreillon
   script:
     # Pull latest image by restarting the deployment
     - kubectl rollout restart deployment/${APPLICATION_NAME}
