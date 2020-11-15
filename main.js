@@ -31,7 +31,7 @@ app.get('/', (req, res) => {
     author: 'Maxime MOREILLON',
     version: require('./package.json').version,
     authentication_api_url: process.env.AUTHENTICATION_API_URL || 'UNDEFINED',
-    group_manager_api_url: process.env.GROUP_MANAGER_API_UR || 'UNDEFINED'L,
+    group_manager_api_url: process.env.GROUP_MANAGER_API_UR || 'UNDEFINED',
     employee_manager_api_url: process.env.EMPLOYEE_MANAGER_API_URL || 'UNDEFINED',
   })
 })
