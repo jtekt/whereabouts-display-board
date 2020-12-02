@@ -4,7 +4,7 @@ const socketio = require('socket.io')
 const cors = require('cors')
 const bodyParser = require('body-parser')
 const dotenv = require('dotenv')
-const promMid = require('express-prometheus-middleware');
+const apiMetrics = require('prometheus-api-metrics')
 
 const ws_auth = require('@moreillon/socketio_authentication_middleware')
 
@@ -18,14 +18,10 @@ const http_server = http.createServer(app)
 const io = socketio(http_server)
 exports.io = io
 
-app.use(promMid({
-  metricsPath: '/metrics',
-  collectDefaultMetrics: true,
-  requestDurationBuckets: [0.1, 0.5, 1, 1.5],
-}))
 
 app.use(cors())
 app.use(bodyParser.json())
+app.use(apiMetrics())
 
 // Express
 const express_users_controller = require('./express_controllers/users.js')
