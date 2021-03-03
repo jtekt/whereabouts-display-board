@@ -5,13 +5,27 @@ const cors = require('cors')
 const bodyParser = require('body-parser')
 const dotenv = require('dotenv')
 const apiMetrics = require('prometheus-api-metrics')
+const mongoose = require('mongoose')
+
 
 const ws_auth = require('@moreillon/socketio_authentication_middleware')
 
-
 dotenv.config()
 
-const APP_PORT = process.env.APP_PORT || 80
+const APP_PORT = process.env.APP_PORT ?? 80
+
+const mongodb_url = process.env.MONGODB_URL ?? 'mongodb://mongo'
+const mongodb_db = process.env.MONGODB_DB ?? 'whereabouts'
+const mongodb_options = {
+   useUnifiedTopology: true,
+   useNewUrlParser: true,
+   useFindAndModify: false,
+}
+mongoose.connect(`${mongodb_url}/${mongodb_db}`, mongodb_options)
+
+const db = mongoose.connection
+db.on('error', console.error.bind(console, 'connection error:'))
+db.once('open', () => { console.log(`[Mongoose] MongoDB connected`) })
 
 const app = express()
 const http_server = http.createServer(app)
@@ -37,6 +51,8 @@ app.get('/', (req, res) => {
     authentication_api_url: process.env.AUTHENTICATION_API_URL || 'UNDEFINED',
     group_manager_api_url: process.env.GROUP_MANAGER_API_URL || 'UNDEFINED',
     employee_manager_api_url: process.env.EMPLOYEE_MANAGER_API_URL || 'UNDEFINED',
+    mongodb_connected: mongoose.connection.readyState === 1,
+    mongodb_db,
   })
 })
 
@@ -44,20 +60,20 @@ app.get('/', (req, res) => {
 
 
 app.route('/users/:user_id')
-  .patch(express_users_controller.update_user)
-  .put(express_users_controller.update_user) // alias
-  //.patch(express_users_controller.update_user_direct_db_access)
+  .patch(express_users_controller.update_whereabouts)
+  .put(express_users_controller.update_whereabouts) // alias
 
 app.route('/update')
-  .get(express_users_controller.update_user) // alternative so as to use a GET request
-  //.get(express_users_controller.update_user_direct_db_access) // alternative so as to use a GET request
+  .get(express_users_controller.update_whereabouts) // alternative so as to use a GET request
+
+
+app.route('/import')
+    .post(express_users_controller.db_import)
 
 // The following routes are just proxies
 app.route('/members/:user_id/groups')
   .get(express_groups_controller.get_groups_of_user) // This is just a proxy
 
-app.route('/login')
-  .post(express_auth_controller.login)  // This is just a proxy
 
 // Websockets
 const ws_groups_controllers = require('./ws_controllers/groups.js')

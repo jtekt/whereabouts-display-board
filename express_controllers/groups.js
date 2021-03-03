@@ -6,8 +6,11 @@ dotenv.config()
 
 exports.get_groups_of_user = (req, res) => {
   // forwarding request to group manager API
-  let url = `${process.env.GROUP_MANAGER_API_URL}/members/${req.params.user_id}/groups`
-  axios.get(url, {headers: {"Authorization" : req.headers.authorization}})
+  // THIS SOULD NOT BE NECESSARY
+  console.log(`IF TIS PRINTS, MAKE DIRECT ACCESS TO SERVICE`)
+  const url = `${process.env.GROUP_MANAGER_API_URL}/members/${req.params.user_id}/groups`
+  const options = {headers: {"Authorization" : req.headers.authorization}}
+  axios.get(url, options)
   .then( (response) => { res.send(response.data) } )
   .catch( (error) => { res.status(error.response.status).send(error) })
 }
