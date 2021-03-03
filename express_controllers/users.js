@@ -122,8 +122,15 @@ exports.update_whereabouts = (req, res) => {
     const user_id = user.identity.low ?? user.identity
     // Retrieve the user info from the user manager
 
-    const message = req.body.message || req.body.current_location
-    const availability = req.body.availability || req.body.presence
+    const message = req.body.message
+      || req.body.current_location
+      || req.query.current_location
+      || req.query.message
+
+    const availability = req.body.availability
+      || req.body.presence
+      || req.query.availability
+      || req.query.presence
 
     if(!message && !availability) {
       return res.status(400).send(`Nothing to update`)
