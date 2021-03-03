@@ -122,14 +122,23 @@ exports.update_whereabouts = (req, res) => {
     const user_id = user.identity.low ?? user.identity
     // Retrieve the user info from the user manager
 
+    const message = req.body.message || req.body.current_location
+    const availability = req.body.availability || req.body.presence
+
+    if(!message && !availability) {
+      return res.status(400).send(`Nothing to update`)
+    }
+
     const filter = { user_id }
-    const update = { $set:
+    let update = { $set:
       {
-        availability: req.body.availability ?? req.body.presence,
-        message: req.body.message ?? req.body.current_location,
         last_update: new Date(),
       }
     }
+
+    if(message) update.message = message
+    if(availability) update.availability = availability
+
     const options = {
       new: true,
       upsert: true,

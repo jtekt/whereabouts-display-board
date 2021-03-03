@@ -52,8 +52,8 @@ app.get('/', (req, res) => {
     group_manager_api_url: process.env.GROUP_MANAGER_API_URL || 'UNDEFINED',
     employee_manager_api_url: process.env.EMPLOYEE_MANAGER_API_URL || 'UNDEFINED',
     mongodb_url,
-    mongodb_connected: mongoose.connection.readyState === 1,
     mongodb_db,
+    mongodb_connected: mongoose.connection.readyState === 1,
   })
 })
 
