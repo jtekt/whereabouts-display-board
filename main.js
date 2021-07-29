@@ -5,8 +5,7 @@ const cors = require('cors')
 const bodyParser = require('body-parser')
 const dotenv = require('dotenv')
 const apiMetrics = require('prometheus-api-metrics')
-const mongoose = require('mongoose')
-
+const mongo = require('./mongo.js')
 
 const ws_auth = require('@moreillon/socketio_authentication_middleware')
 
@@ -14,18 +13,7 @@ dotenv.config()
 
 const APP_PORT = process.env.APP_PORT ?? 80
 
-const mongodb_url = process.env.MONGODB_URL ?? 'mongodb://mongo'
-const mongodb_db = process.env.MONGODB_DB ?? 'whereabouts'
-const mongodb_options = {
-   useUnifiedTopology: true,
-   useNewUrlParser: true,
-   useFindAndModify: false,
-}
-mongoose.connect(`${mongodb_url}/${mongodb_db}`, mongodb_options)
 
-const db = mongoose.connection
-db.on('error', console.error.bind(console, 'connection error:'))
-db.once('open', () => { console.log(`[Mongoose] MongoDB connected`) })
 
 const app = express()
 const http_server = http.createServer(app)
@@ -51,9 +39,11 @@ app.get('/', (req, res) => {
     authentication_api_url: process.env.AUTHENTICATION_API_URL || 'UNDEFINED',
     group_manager_api_url: process.env.GROUP_MANAGER_API_URL || 'UNDEFINED',
     employee_manager_api_url: process.env.EMPLOYEE_MANAGER_API_URL || 'UNDEFINED',
-    mongodb_url,
-    mongodb_db,
-    mongodb_connected: mongoose.connection.readyState === 1,
+    mongodb: {
+      url: mongo.url,
+      db: mongo.db,
+      connected: mongo.connected(),
+    }
   })
 })
 

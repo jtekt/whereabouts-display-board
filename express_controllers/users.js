@@ -69,6 +69,8 @@ exports.update_whereabouts = (req, res) => {
   // 5. Merge MongoDB entry in user record
   // 6. Emit
 
+  // Warning, this contreoller can be used through wither GET or POST requests
+
   // User record needs to be passed further down the promise chain
   let user_record = {}
 
