@@ -25,6 +25,7 @@ deployment:
   tags:
     - moreillon
   script:
+    - envsubst < kubernetes_manifest.yml | kubectl apply -f -
     # Pull latest image by restarting the deployment
     - kubectl rollout restart deployment/${APPLICATION_NAME}
   environment:
