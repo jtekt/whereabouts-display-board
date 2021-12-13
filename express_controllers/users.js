@@ -8,7 +8,7 @@ dotenv.config()
 const update_rooms_of_user = (user_record, jwt) => {
   // Sends a WS event to all members of the room (group) an updated user is part of
 
-  const user = user_record._fields[user_record._fieldLookup.employee]
+  const user = user_record._fields[user_record._fieldLookup.user]
   const user_id = user.identity.low ?? user.identity
 
   if(!user_id && user_id !== 0) return console.log(`User does not have an ID`)
@@ -87,14 +87,17 @@ exports.update_whereabouts = (req, res) => {
   const options = {params: {jwt}}
 
   axios.get(jwt_decoding_url,options)
-  .then( (response) => {
+  .then( ({data}) => {
+
+
 
     // Use the provided user ID if available. Otherwise use that of the JWT
     // Are there cases where update is for another user?
 
-    const jwt_owner = response.data
+    const jwt_owner = data
     const jwt_owner_id = jwt_owner.identity.low // old Neo4J syntax
       ?? jwt_owner.identity // New Neo4J syntax
+
 
     const user_id = req.params.user_id
       ?? req.query.user_id
@@ -117,11 +120,15 @@ exports.update_whereabouts = (req, res) => {
 
     return axios.get(url, options)
   })
-  .then(response => {
+  .then( ({data}) => {
 
-    user_record = response.data[0]
-    const user = user_record._fields[user_record._fieldLookup['employee']]
+    user_record = data[0]
+
+    const user = user_record._fields[user_record._fieldLookup['user']]
+
     const user_id = user.identity.low ?? user.identity
+
+
     // Retrieve the user info from the user manager
 
     const message = req.body.message
@@ -160,7 +167,7 @@ exports.update_whereabouts = (req, res) => {
     console.log(`[Mongoose] whereabouts of user ${result.user_id} updated`)
     res.send(user_record)
 
-    user_record._fields[user_record._fieldLookup['employee']].whereabouts = result
+    user_record._fields[user_record._fieldLookup['user']].whereabouts = result
 
     // JWT needed because querying goups of user to update corresponding rooms
     update_rooms_of_user(user_record, jwt)
