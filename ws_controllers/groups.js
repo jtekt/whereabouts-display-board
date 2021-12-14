@@ -1,6 +1,7 @@
 const io = require('../main.js').io
 const axios = require('axios')
 const Whereabouts = require('../models/whereabouts.js')
+const { get_id_of_item } = require('../utils.js')
 
 const manage_rooms = (socket, group_id) => {
   // leave previous room
@@ -40,7 +41,7 @@ exports.get_members_of_group = (socket) => {
       const query = {
         $or: user_records.map( record => {
           const user = record._fields[record._fieldLookup.user]
-          const user_id = user.identity.low ?? user.identity
+          const user_id = get_id_of_item(user)
           return { user_id }
         })
       }
@@ -56,7 +57,7 @@ exports.get_members_of_group = (socket) => {
 
       user_records.forEach( (record) => {
         const user = record._fields[record._fieldLookup.user]
-        const user_id = user.identity.low ?? user.identity
+        const user_id = get_id_of_item(user)
 
         user.whereabouts = entries_mapping[user_id]
           ||  {

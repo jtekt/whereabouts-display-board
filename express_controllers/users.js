@@ -3,13 +3,15 @@ const io = require('../main.js').io
 const axios = require('axios')
 const Whereabouts = require('../models/whereabouts.js')
 
+const { get_id_of_item, } = require('../utils.js')
+
 dotenv.config()
 
 const update_rooms_of_user = (user_record, jwt) => {
   // Sends a WS event to all members of the room (group) an updated user is part of
 
   const user = user_record._fields[user_record._fieldLookup.user]
-  const user_id = user.identity.low ?? user.identity
+  const user_id = get_id_of_item(user)
 
   if(!user_id && user_id !== 0) return console.log(`User does not have an ID`)
 
@@ -25,7 +27,7 @@ const update_rooms_of_user = (user_record, jwt) => {
     records.forEach((record) => {
 
       const group = record._fields[record._fieldLookup.group]
-      const group_id = group.identity.low ?? group.identity
+      const group_id = get_id_of_item(group)
 
       // needs to be an array of users
       io.in(String(group_id)).emit('members_of_group',[user_record])
@@ -95,8 +97,7 @@ exports.update_whereabouts = (req, res) => {
     // Are there cases where update is for another user?
 
     const jwt_owner = data
-    const jwt_owner_id = jwt_owner.identity.low // old Neo4J syntax
-      ?? jwt_owner.identity // New Neo4J syntax
+    const jwt_owner_id = get_id_of_item(jwt_owner)
 
 
     const user_id = req.params.user_id
@@ -126,7 +127,7 @@ exports.update_whereabouts = (req, res) => {
 
     const user = user_record._fields[user_record._fieldLookup['user']]
 
-    const user_id = user.identity.low ?? user.identity
+    const user_id = get_id_of_item(user)
 
 
     // Retrieve the user info from the user manager
