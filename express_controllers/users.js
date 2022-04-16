@@ -1,9 +1,8 @@
 const dotenv = require('dotenv')
-const io = require('../main.js').io
+const { io } = require('../main.js')
 const axios = require('axios')
 const Whereabouts = require('../models/whereabouts.js')
-
-const { get_id_of_item, } = require('../utils.js')
+const { get_id_of_item } = require('../utils.js')
 
 dotenv.config()
 
@@ -173,82 +172,6 @@ exports.update_whereabouts = (req, res) => {
     // JWT needed because querying goups of user to update corresponding rooms
     update_rooms_of_user(user_record, jwt)
   })
-  .catch( (error) => {
-    console.log(error)
-    return res.status(403).send(error)
-  })
-
-}
-
-
-exports.db_import = (req, res) => {
-
-  const jwt = get_jwt(req)
-
-  // If no token, forbid further access
-  if(!jwt) {
-    console.log(`JWT not found`)
-    return res.status(403).send(`JWT not found`)
-  }
-
-  // Retrieve the user ID from the JWT
-  const jwt_decoding_url = `${process.env.AUTHENTICATION_API_URL}/user_from_jwt`
-  const options = {params: {jwt}}
-
-  axios.get(jwt_decoding_url,options)
-  .then( (response) => {
-
-    // Use the provided user ID if available. Otherwise use that of the JWT
-    // Are there cases where update is for another user?
-
-    const jwt_owner = response.data
-
-
-    if(!jwt_owner.properties.isAdmin){
-      console.log(`Unauthorized unless admin`)
-      return res.status(403).send(`Unauthorized unless admin`)
-    }
-
-    res.send('processing')
-
-    req.body.forEach((entry) => {
-
-      const filter = { user_id: entry.user_id }
-      const update = { $set:
-        {
-          availability: entry.availability ?? 'unavailable',
-          message: entry.message ?? 'unknown',
-          last_update: entry.last_update ?? new Date(),
-        }
-      }
-      const options = {
-        new: true,
-        upsert: true
-      }
-
-      //console.log(update)
-
-
-      Whereabouts.findOneAndUpdate(filter, update, options)
-      .then((result) => {
-        console.log(update)
-      })
-      .catch((error) => {
-        console.log(error)
-      })
-
-
-    })
-
-
-
-
-
-
-
-  })
-
-
   .catch( (error) => {
     console.log(error)
     return res.status(403).send(error)
