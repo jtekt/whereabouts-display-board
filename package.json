@@ -1,22 +1,23 @@
 {
   "name": "whereabouts",
-  "version": "4.1.0",
+  "version": "4.2.0",
   "description": "",
   "main": "main.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
-  "license": "ISC",
+  "author": "Maxime Moreillon",
+  "license": "MIT",
   "dependencies": {
     "@moreillon/socketio_authentication_middleware": "0.0.1",
     "axios": "^0.21.4",
     "cors": "^2.8.5",
     "dotenv": "^8.6.0",
-    "express": "^4.17.1",
-    "mongoose": "^5.13.9",
+    "express": "^4.17.3",
+    "http-errors": "^2.0.0",
+    "mongoose": "^5.13.14",
     "prom-client": "^12.0.0",
-    "prometheus-api-metrics": "^3.2.0",
+    "prometheus-api-metrics": "^3.2.1",
     "socket.io": "^2.4.1",
     "vue-axios": "^2.1.5"
   }

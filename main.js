@@ -25,14 +25,14 @@ const http_server = http.createServer(app)
 const io = socketio(http_server)
 exports.io = io
 
+const {update_whereabouts} = require('./controllers/users.js')
+const group_controllers = require('./controllers/groups.js')
+const auth_controllers = require('./controllers/auth.js')
+
 
 app.use(cors())
 app.use(bodyParser.json())
 app.use(apiMetrics())
-
-
-
-
 
 app.get('/', (req, res) => {
   res.send({
@@ -52,27 +52,29 @@ app.get('/', (req, res) => {
 
 
 // Express
-const express_users_controller = require('./express_controllers/users.js')
 
 app.route('/users/:user_id')
-  .patch(express_users_controller.update_whereabouts)
-  .put(express_users_controller.update_whereabouts) // alias
+  .patch(update_whereabouts)
+  .put(update_whereabouts) // alias
 
 app.route('/update')
-  .get(express_users_controller.update_whereabouts) // alternative so as to use a GET request, legacy
+  .get(update_whereabouts) // alternative so as to use a GET request, legacy
 
+// Express error handler
+app.use((err, req, res, next) => {
+  console.error(err)
+  res.status(err.statusCode).send(err.message)
+})
 
 // Websockets
-const ws_groups_controllers = require('./ws_controllers/groups.js')
-const ws_auth_controllers = require('./ws_controllers/auth.js')
 
 io.on('connection', (socket) => {
   console.log('[WS] a user connected')
 
   // This is too complex
-  socket.use(ws_auth(socket, ws_auth_controllers.auth(socket)))
+  socket.use(ws_auth(socket, auth_controllers.auth(socket)))
 
-  socket.on('get_members_of_group', ws_groups_controllers.get_members_of_group(socket))
+  socket.on('get_members_of_group', group_controllers.get_members_of_group(socket))
 })
 
 // Start listening
