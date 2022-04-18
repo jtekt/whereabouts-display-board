@@ -1,6 +1,6 @@
 # 行先掲示板 / Whereabouts display board
 
-A lot of Japanese companies use a whiteboards to display the whereabouts of team members. 
+Many Japanese companies use a whiteboards to display the whereabouts of team members. 
 Those can be useful when quickly trying to figure out if a member is in the office, on a business trip, etc.
 
 <p align="center">
