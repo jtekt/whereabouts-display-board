@@ -12,6 +12,12 @@ This application offers a solution to the problem by providing the same features
 Here, the whereabouts of team members are displayed on a single page application (SPA) and can be easily edited from any device.
 The wherebouts are stored in a MongoDB database and their changes are broadcast via WebSockets to all connected clients for real-time updates.
 
+<p align="center">
+  <img width="300" src="./docs/whereabouts.png">
+</p>
+
+This repository contains the source-code for the back-end of the application. The GUI is developed independently and its the object of its own repository.
+
 ## API
 
 |Route|Method|Query/body|Description|
