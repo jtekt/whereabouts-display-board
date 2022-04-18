@@ -4,7 +4,7 @@ A lot of Japanese companies use a whiteboards to display the whereabouts of team
 Those can be useful when quickly trying to figure out if a member is in the office, on a business trip, etc.
 
 <p align="center">
-  <img width="100" height="150" src="./docs/whiteboard.jpg">
+  <img width="300" src="./docs/whiteboard.jpg">
 </p>
 
 However, because of COVID-19, more and more employees work from home and can thus not see the whiteboards anymore.
