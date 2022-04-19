@@ -81,3 +81,5 @@ io.on('connection', (socket) => {
 http_server.listen(APP_PORT, () => {
   console.log(`[Express] Listening on *:${APP_PORT}`)
 })
+
+exports.http_server = http_server

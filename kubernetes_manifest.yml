@@ -1,23 +1,21 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: whereabouts
+  name: ${APPLICATION_NAME}
   namespace: moreillon
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: whereabouts
+      app: ${APPLICATION_NAME}
   template:
     metadata:
       labels:
-        app: whereabouts
+        app: ${APPLICATION_NAME}
     spec:
       containers:
-      - name: whereabouts
-        image: moreillon/whereabouts
-        # Pull new image on restart
-        imagePullPolicy: Always
+      - name: ${APPLICATION_NAME}
+        image: ${CONTAINER_IMAGE_TAGGED}
         ports:
         - containerPort: 80
         # Get environment variables from secret
@@ -28,12 +26,12 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: whereabouts
+  name: ${APPLICATION_NAME}
   namespace: moreillon
 spec:
   type: NodePort
   selector:
-    app: whereabouts
+    app: ${APPLICATION_NAME}
   ports:
   - port: 80
-    nodePort: 30777
+    nodePort: ${K8S_NODEPORT_PORT}
