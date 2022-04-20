@@ -2,34 +2,47 @@ stages:
   - containerization
   - deployment
 
+image: moreillon/tdd-dind
+services:
+  - name: docker:19.03.12-dind
+
 variables:
   APPLICATION_NAME: whereabouts
-  DOCKER_IMAGE: ${DOCKER_HUB_USERNAME}/${APPLICATION_NAME}
+
+  CONTAINER_TAG: ${CI_COMMIT_SHORT_SHA}
+  CONTAINER_IMAGE: ${DOCKER_HUB_USERNAME}/${APPLICATION_NAME}
+  CONTAINER_IMAGE_TAGGED: ${CONTAINER_IMAGE}:${CONTAINER_TAG}
+
+  K8S_NODEPORT_PORT: 30777
+
 
 containerization:
   stage: containerization
   tags:
-    - moreillon
-  script:
+    - dind
+  only:
+    - master
+  before_script:
     # Docker hub login
     - echo "${DOCKER_HUB_PASSWORD}" | docker login --username ${DOCKER_HUB_USERNAME} --password-stdin
+  script:
     # Build the docker image
-    - docker build -t ${DOCKER_IMAGE} .
-    # Pushing image to registry
-    - docker push ${DOCKER_IMAGE}
-    # Cleanup
-    - docker image rm ${DOCKER_IMAGE}
+    - docker build -t ${CONTAINER_IMAGE} .
+    # Tagging
+    - docker tag ${CONTAINER_IMAGE} ${CONTAINER_IMAGE_TAGGED}
+    # Pushing images to the registry
+    - docker push ${CONTAINER_IMAGE}
+    - docker push ${CONTAINER_IMAGE_TAGGED}
 
 deployment:
   stage: deployment
   tags:
-    - moreillon
+    - dind
+  only:
+    - master
   script:
     - envsubst < kubernetes_manifest.yml | kubectl apply -f -
-    # Pull latest image by restarting the deployment
-    - kubectl rollout restart deployment/${APPLICATION_NAME}
   environment:
     name: production
     kubernetes:
-      # Obtained from GitLab
       namespace: ${KUBERNETES_NAMESPACE}
