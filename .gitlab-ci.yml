@@ -36,8 +36,6 @@ containerization:
 
 deployment:
   stage: deployment
-  tags:
-    - dind
   only:
     - master
   script:

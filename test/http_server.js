@@ -1,6 +1,6 @@
 const request = require("supertest")
 const {expect} = require("chai")
-const {http_server} = require("../main.js")
+const {http_server: app} = require("../main.js")
 
 
 describe('/', () => {
