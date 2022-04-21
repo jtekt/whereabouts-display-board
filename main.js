@@ -13,7 +13,8 @@ dotenv.config()
 
 const {
   APP_PORT = 80,
-  AUTHENTICATION_API_URL = 'UNDEFINED',
+  AUTHENTICATION_API_URL,
+  IDENTIFICATION_URL,
   GROUP_MANAGER_API_URL = 'UNDEFINED',
   EMPLOYEE_MANAGER_API_URL = 'UNDEFINED',
 } = process.env
@@ -39,7 +40,10 @@ app.get('/', (req, res) => {
     application_name: '行先掲示板',
     author,
     version,
-    authentication_api_url: AUTHENTICATION_API_URL,
+    authentication: {
+      identification_url: IDENTIFICATION_URL,
+      authentication_api_url: AUTHENTICATION_API_URL,
+    },
     group_manager_api_url: GROUP_MANAGER_API_URL,
     employee_manager_api_url: EMPLOYEE_MANAGER_API_URL,
     mongodb: {

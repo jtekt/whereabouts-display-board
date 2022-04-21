@@ -7,6 +7,12 @@ const createHttpError = require('http-errors')
 
 dotenv.config()
 
+const {
+  AUTHENTICATION_API_URL,
+  IDENTIFICATION_URL,
+  EMPLOYEE_MANAGER_API_URL,
+} = process.env
+
 const update_rooms_of_user = (user, jwt) => {
   // Sends a WS event to all members of the room (group) an updated user is part of
 
@@ -81,7 +87,7 @@ exports.update_whereabouts = async (req, res, next) => {
     if(!jwt) throw createHttpError(403, `JWT not found`)
 
     // Retrieve the user ID from the JWT
-    const jwt_decoding_url = `${process.env.AUTHENTICATION_API_URL}/user_from_jwt`
+    const jwt_decoding_url = IDENTIFICATION_URL || `${AUTHENTICATION_API_URL}/user_from_jwt`
     const params = {jwt}
 
     const { data: jwt_owner} = await axios.get(jwt_decoding_url,{params})
@@ -105,7 +111,7 @@ exports.update_whereabouts = async (req, res, next) => {
     }
 
 
-    const url = `${process.env.EMPLOYEE_MANAGER_API_URL}/v3/users/${user_id}`
+    const url = `${EMPLOYEE_MANAGER_API_URL}/v3/users/${user_id}`
 
     const {data: user} = await axios.get(url, {params})
 
