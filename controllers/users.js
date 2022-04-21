@@ -11,6 +11,7 @@ const {
   AUTHENTICATION_API_URL,
   IDENTIFICATION_URL,
   EMPLOYEE_MANAGER_API_URL,
+  GROUP_MANAGER_API_URL,
 } = process.env
 
 const update_rooms_of_user = (user, jwt) => {
@@ -20,8 +21,7 @@ const update_rooms_of_user = (user, jwt) => {
 
   if(!user_id && user_id !== 0) throw `User does not have an ID`
 
-  // TODO: Use API v3
-  const url = `${process.env.GROUP_MANAGER_API_URL}/v3/members/${user_id}/groups`
+  const url = `${GROUP_MANAGER_API_URL}/v3/members/${user_id}/groups`
   const headers = {"Authorization" : `Bearer ${jwt}`}
 
   axios.get(url, {headers})
@@ -29,12 +29,10 @@ const update_rooms_of_user = (user, jwt) => {
 
     console.log(`[WS] Updating ${groups.length} rooms (groups) for user ${user_id}`)
 
-    groups.forEach((group) => {
-
-      const group_id = get_id_of_item(group)
+    groups.forEach( ({_id}) => {
 
       // needs to be an array of users
-      io.in(String(group_id)).emit('members_of_group',[user])
+      io.in(String(_id)).emit('members_of_group',[user])
 
     })
   })
@@ -105,8 +103,10 @@ exports.update_whereabouts = async (req, res, next) => {
 
     if(!user_id) throw createHttpError(400, `User ID not specified`)
 
+    const user_is_admin = jwt_owner.isAdmin || jwt_owner.properties.isAdmin
 
-    if(String(jwt_owner_id) !== String(user_id) && !jwt_owner.properties.isAdmin){
+
+    if(String(jwt_owner_id) !== String(user_id) && !user_is_admin){
       throw createHttpError(403, `Unauthorized to modify another user`)
     }
 
