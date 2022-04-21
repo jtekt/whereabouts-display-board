@@ -15,7 +15,7 @@ const manage_rooms = (socket, group_id) => {
   for (var room in socket.rooms) {
     if(room !== socket.id && room !== 'authenticated') {
       console.log(`[WS] Socket ${socket.id} left room ${room}`)
-      delete room
+      socket.leave(room)
     }
   }
 
