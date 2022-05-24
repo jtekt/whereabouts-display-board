@@ -36,9 +36,10 @@ exports.get_members_of_group = (socket) => (message) => {
 
   // Fetching members using the group manager API
   const url = `${GROUP_MANAGER_API_URL}/v3/groups/${group_id}/members`
+  const params = {batch_size: -1}
   const headers = {Authorization: `Bearer ${socket.jwt}`}
 
-  axios.get(url, {headers})
+  axios.get(url, {headers, params})
   .then(({data}) => {
 
     users = data.items
