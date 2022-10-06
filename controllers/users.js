@@ -95,11 +95,12 @@ exports.update_whereabouts = async (req, res, next) => {
 
     const jwt_owner_id = get_id_of_item(jwt_owner)
 
-
-    const user_id = req.params.user_id
+    let user_id = req.params.user_id
       ?? req.query.user_id
       ?? req.body.user_id
       ?? jwt_owner_id
+
+    if (user_id === 'self') user_id = jwt_owner_id
 
     if(!user_id) throw createHttpError(400, `User ID not specified`)
 
@@ -131,8 +132,8 @@ exports.update_whereabouts = async (req, res, next) => {
     if(!message && !availability) throw createHttpError(400, `Message or availability not provided`)
 
     const filter = { user_id }
-    let update = { $set: { last_update: new Date() } }
 
+    const update = { $set: { last_update: new Date() } }
     if(message) update.message = message
     if(availability) update.availability = availability
 
