@@ -8,16 +8,14 @@ services:
   - name: docker:19.03.12-dind
 
 variables:
-  APPLICATION_NAME: whereabouts
+  APPLICATION_NAME: whereabouts-display-board
 
-  CONTAINER_TAG: ${CI_COMMIT_SHORT_SHA}
-  CONTAINER_IMAGE: ${DOCKER_HUB_USERNAME}/${APPLICATION_NAME}
+  CONTAINER_IMAGE: ${AWS_ECR_PUBLIC_URL}/${APPLICATION_NAME}
   CONTAINER_IMAGE_TEST: ${CONTAINER_IMAGE}:test
   CONTAINER_IMAGE_LATEST: ${CONTAINER_IMAGE}:latest
-  CONTAINER_IMAGE_TAGGED: ${CONTAINER_IMAGE}:${CONTAINER_TAG}
+  CONTAINER_IMAGE_TAGGED: ${CONTAINER_IMAGE}:${CI_COMMIT_SHORT_SHA}
 
   K8S_NODEPORT_PORT: 30777
-
 
 build:
   stage: build
@@ -26,7 +24,12 @@ build:
   only:
     - master
   before_script:
-    - echo "${DOCKER_HUB_PASSWORD}" | docker login --username ${DOCKER_HUB_USERNAME} --password-stdin
+    # Registry login
+    - aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin ${AWS_ECR_PUBLIC_URL}
+    # Create repository in ECR if it does not exist yet
+    - >
+      aws ecr-public create-repository --region us-east-1 --repository-name ${APPLICATION_NAME}
+      || echo "Repository might have already existed"
   script:
     - docker build -t ${CONTAINER_IMAGE_TEST} .
     - docker push ${CONTAINER_IMAGE_TEST}
@@ -39,13 +42,14 @@ test:
   tags:
     - dind
   before_script:
-    - echo "${DOCKER_HUB_PASSWORD}" | docker login --username ${DOCKER_HUB_USERNAME} --password-stdin
-  script:
+    # Registry login
+    - aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin ${AWS_ECR_PUBLIC_URL}
+    # Create repository in ECR if it does not exist yet
     - >
-      docker run
-      --rm
-      ${CONTAINER_IMAGE_TEST}
-      npm run coverage
+      aws ecr-public create-repository --region us-east-1 --repository-name ${APPLICATION_NAME}
+      || echo "Repository might have already existed"
+  script:
+    - docker run --rm ${CONTAINER_IMAGE_TEST} npm run coverage
 
     - docker tag ${CONTAINER_IMAGE_TEST} ${CONTAINER_IMAGE_LATEST}
     - docker tag ${CONTAINER_IMAGE_TEST} ${CONTAINER_IMAGE_TAGGED}
