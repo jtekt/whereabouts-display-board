@@ -71,7 +71,7 @@ app.use((err, req, res, next) => {
 io.on("connection", (socket) => {
   console.log("[WS] a user connected")
 
-  // This is too complex
+  // TODO: simplifiy auth
   socket.use(ws_auth(socket, auth_controllers.auth(socket)))
 
   socket.on(

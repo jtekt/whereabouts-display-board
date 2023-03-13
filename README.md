@@ -1,6 +1,8 @@
 # 行先掲示板 / Whereabouts display board
 
-Many Japanese companies use a whiteboards to display the whereabouts of team members. 
+[![AWS ECR](https://img.shields.io/badge/AWS%20ECR-whereabouts--display--board-blue)](https://gallery.ecr.aws/jtekt-corporation/whereabouts-display-board)
+
+Many Japanese companies use whiteboards to display the whereabouts of team members.
 Those can be useful when quickly trying to figure out if a member is in the office, on a business trip, etc.
 
 <p align="center">
@@ -20,7 +22,7 @@ This repository contains the source-code for the back-end of the application. Th
 
 ## API
 
-|Route|Method|Query/body|Description|
-|---|---|---|---|
-|/users/USER_ID|PATCH/PUT|current_location, presence (JSON) | Updates the whereabouts of user with ID USER_ID|
-|/update|GET|token, presence, current_location| Updates the whereabouts of user identified by the provided user token|
+| Route          | Method    | Query/body                        | Description                                                           |
+| -------------- | --------- | --------------------------------- | --------------------------------------------------------------------- |
+| /users/USER_ID | PATCH/PUT | current_location, presence (JSON) | Updates the whereabouts of user with ID USER_ID                       |
+| /update        | GET       | token, presence, current_location | Updates the whereabouts of user identified by the provided user token |
