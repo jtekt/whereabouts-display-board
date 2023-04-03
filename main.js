@@ -1,3 +1,4 @@
+require("express-async-errors")
 const express = require("express")
 const http = require("http")
 const socketio = require("socket.io")
@@ -8,7 +9,6 @@ const apiMetrics = require("prometheus-api-metrics")
 const mongo = require("./mongo.js")
 const { version, author } = require("./package.json")
 const ws_auth = require("@moreillon/socketio_authentication_middleware")
-require("express-async-errors")
 
 dotenv.config()
 
