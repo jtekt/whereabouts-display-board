@@ -18,7 +18,7 @@ exports.auth = (socket) => {
 
     axios
       .get(url, { params: { jwt } })
-      .then((response) => {
+      .then(() => {
         socket.jwt = jwt
         callback(false, true)
       })
