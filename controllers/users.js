@@ -97,7 +97,7 @@ exports.update_whereabouts = async (req, res) => {
 
   if (!user_id) throw createHttpError(400, `User ID not specified`)
 
-  const user_is_admin = jwt_owner.isAdmin || jwt_owner.properties.isAdmin
+  const user_is_admin = jwt_owner.isAdmin
 
   if (String(jwt_owner_id) !== String(user_id) && !user_is_admin) {
     throw createHttpError(403, `Unauthorized to modify another user`)
