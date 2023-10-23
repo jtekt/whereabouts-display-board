@@ -27,10 +27,6 @@ const update_rooms_of_user = (user, jwt) => {
   axios
     .get(url, { headers })
     .then(({ data: { items: groups } }) => {
-      console.log(
-        `[WS] Updating ${groups.length} rooms (groups) for user ${user_id}`
-      )
-
       groups.forEach(({ _id }) => {
         // needs to be an array of users
         io.in(String(_id)).emit("members_of_group", [user])
@@ -137,8 +133,6 @@ exports.update_whereabouts = async (req, res) => {
     update,
     update_options
   )
-
-  console.log(`[Mongoose] whereabouts of user ${user._id} updated`)
 
   user.whereabouts = new_whereabouts
 

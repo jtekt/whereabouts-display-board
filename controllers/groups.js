@@ -28,8 +28,6 @@ exports.get_members_of_group = (socket) => (message) => {
   const group_id = message.group_id
   if (!group_id) return console.log(`Missing group ID`)
 
-  console.log(`[WS] Members of group ${group_id} requested`)
-
   // Fetching members using the group manager API
   const url = `${GROUP_MANAGER_API_URL}/v3/groups/${group_id}/members`
   const params = { batch_size: -1 }
