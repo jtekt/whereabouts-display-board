@@ -69,8 +69,6 @@ app.use((err, req, res, next) => {
 // Websockets
 
 io.on("connection", (socket) => {
-  console.log("[WS] a user connected")
-
   // TODO: simplifiy auth
   socket.use(ws_auth(socket, auth_controllers.auth(socket)))
 
