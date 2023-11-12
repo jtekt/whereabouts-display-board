@@ -1,16 +1,20 @@
-require("express-async-errors")
+const dotenv = require("dotenv")
+dotenv.config()
+
 const express = require("express")
+require("express-async-errors")
+
 const http = require("http")
 const socketio = require("socket.io")
 const cors = require("cors")
 const bodyParser = require("body-parser")
-const dotenv = require("dotenv")
-const apiMetrics = require("prometheus-api-metrics")
+
 const mongo = require("./mongo.js")
 const { version, author } = require("./package.json")
 const ws_auth = require("@moreillon/socketio_authentication_middleware")
+const promBundle = require("express-prom-bundle")
 
-dotenv.config()
+console.log(`行先掲示板 v${version}`)
 
 const {
   APP_PORT = 80,
@@ -19,8 +23,7 @@ const {
   GROUP_MANAGER_API_URL = "UNDEFINED",
   EMPLOYEE_MANAGER_API_URL = "UNDEFINED",
 } = process.env
-
-console.log(`行先掲示板 v${version}`)
+const promOptions = { includeMethod: true, includePath: true }
 
 const app = express()
 const http_server = http.createServer(app)
@@ -33,7 +36,7 @@ const auth_controllers = require("./controllers/auth.js")
 
 app.use(cors())
 app.use(bodyParser.json())
-app.use(apiMetrics())
+app.use(promBundle(promOptions))
 
 app.get("/", (req, res) => {
   res.send({
