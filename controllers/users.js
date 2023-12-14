@@ -101,7 +101,15 @@ exports.update_whereabouts = async (req, res) => {
 
   const url = `${EMPLOYEE_MANAGER_API_URL}/v3/users/${user_id}`
 
-  const { data: user } = await axios.get(url, { params })
+  let user
+  try {
+    const { data } = await axios.get(url, { params })
+    user = data
+  } catch (error) {
+    const code = error.response?.status || 500
+    const message = error.response?.data || error.message
+    throw createHttpError(code, message)
+  }
 
   // Retrieve the user info from the user manager
 
