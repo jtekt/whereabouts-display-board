@@ -79,7 +79,15 @@ exports.update_whereabouts = async (req, res) => {
     IDENTIFICATION_URL || `${AUTHENTICATION_API_URL}/user_from_jwt`
   const params = { jwt }
 
-  const { data: jwt_owner } = await axios.get(jwt_decoding_url, { params })
+  let jwt_owner
+  try {
+    const { data } = await axios.get(jwt_decoding_url, { params })
+    jwt_owner = data
+  } catch (error) {
+    const code = error.response?.status || 500
+    const message = error.response?.data || error.message
+    throw createHttpError(code, message)
+  }
 
   // Use the provided user ID if available. Otherwise use that of the JWT
   // Are there cases where update is for another user?
