@@ -75,13 +75,10 @@ exports.update_whereabouts = async (req, res) => {
   if (!jwt) throw createHttpError(403, `JWT not found`)
 
   // Retrieve the user ID from the JWT
-  const jwt_decoding_url =
-    IDENTIFICATION_URL || `${AUTHENTICATION_API_URL}/user_from_jwt`
-  const params = { jwt }
-
   let jwt_owner
   try {
-    const { data } = await axios.get(jwt_decoding_url, { params })
+    const params = { jwt }
+    const { data } = await axios.get(IDENTIFICATION_URL, { params })
     jwt_owner = data
   } catch (error) {
     const code = error.response?.status || 500

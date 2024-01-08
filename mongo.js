@@ -3,8 +3,16 @@ const dotenv = require("dotenv")
 
 dotenv.config()
 
-const { MONGODB_URL = "mongodb://mongo", MONGODB_DB = "whereabouts" } =
-  process.env
+const {
+  MONGODB_CONNECTION_STRING,
+  MONGODB_PROTOCOL = "mongodb",
+  MONGODB_USERNAME,
+  MONGODB_PASSWORD,
+  MONGODB_HOST = "localhost",
+  MONGODB_PORT,
+  MONGODB_DB = "whereabouts",
+  MONGODB_OPTIONS = "",
+} = process.env
 
 const mongodb_options = {
   useUnifiedTopology: true,
@@ -12,12 +20,24 @@ const mongodb_options = {
   useFindAndModify: false,
 }
 
+const mongodbPort = MONGODB_PORT ? `:${MONGODB_PORT}` : ""
+
+const connectionString =
+  MONGODB_CONNECTION_STRING ||
+  (MONGODB_USERNAME && MONGODB_PASSWORD
+    ? `${MONGODB_PROTOCOL}://${MONGODB_USERNAME}:${MONGODB_PASSWORD}@${MONGODB_HOST}${mongodbPort}/${MONGODB_DB}${MONGODB_OPTIONS}`
+    : `${MONGODB_PROTOCOL}://${MONGODB_HOST}${mongodbPort}/${MONGODB_DB}${MONGODB_OPTIONS}`)
+
+const redactedConnectionString = connectionString.replace(/:.*@/, "://***:***@")
+
 mongoose.set("useCreateIndex", true)
 
 function mongoose_connect() {
-  console.log("[MongoDB] Attempting connection...")
+  console.log(
+    `[MongoDB] Attempting connection to ${redactedConnectionString}...`
+  )
   mongoose
-    .connect(`${MONGODB_URL}/${MONGODB_DB}`, mongodb_options)
+    .connect(connectionString, mongodb_options)
     .then(() => {
       console.log("[Mongoose] Initial connection successful")
     })
@@ -35,6 +55,5 @@ db.once("open", () => {
   console.log(`[Mongoose] MongoDB connected`)
 })
 
-exports.db = MONGODB_DB
-exports.url = MONGODB_URL
 exports.connected = () => mongoose.connection.readyState
+exports.redactedConnectionString = redactedConnectionString

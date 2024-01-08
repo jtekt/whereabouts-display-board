@@ -50,8 +50,7 @@ app.get("/", (req, res) => {
     group_manager_api_url: GROUP_MANAGER_API_URL,
     employee_manager_api_url: EMPLOYEE_MANAGER_API_URL,
     mongodb: {
-      url: mongo.url,
-      db: mongo.db,
+      url: mongo.redactedConnectionString,
       connected: mongo.connected(),
     },
   })
