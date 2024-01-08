@@ -108,7 +108,7 @@ exports.update_whereabouts = async (req, res) => {
 
   let user
   try {
-    const { data } = await axios.get(url, { params })
+    const { data } = await axios.get(url)
     user = data
   } catch (error) {
     const code = error.response?.status || 500
