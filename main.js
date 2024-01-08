@@ -18,7 +18,6 @@ console.log(`行先掲示板 v${version}`)
 
 const {
   APP_PORT = 80,
-  AUTHENTICATION_API_URL,
   IDENTIFICATION_URL,
   GROUP_MANAGER_API_URL = "UNDEFINED",
   EMPLOYEE_MANAGER_API_URL = "UNDEFINED",
@@ -45,7 +44,6 @@ app.get("/", (req, res) => {
     version,
     authentication: {
       identification_url: IDENTIFICATION_URL,
-      authentication_api_url: AUTHENTICATION_API_URL,
     },
     group_manager_api_url: GROUP_MANAGER_API_URL,
     employee_manager_api_url: EMPLOYEE_MANAGER_API_URL,
