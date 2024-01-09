@@ -76,8 +76,9 @@ exports.update_whereabouts = async (req, res) => {
 
   // Retrieve the user ID from the JWT
   let jwt_owner
+  const params = { jwt }
+
   try {
-    const params = { jwt }
     const { data } = await axios.get(IDENTIFICATION_URL, { params })
     jwt_owner = data
   } catch (error) {
@@ -108,7 +109,7 @@ exports.update_whereabouts = async (req, res) => {
 
   let user
   try {
-    const { data } = await axios.get(url)
+    const { data } = await axios.get(url, { params })
     user = data
   } catch (error) {
     const code = error.response?.status || 500
