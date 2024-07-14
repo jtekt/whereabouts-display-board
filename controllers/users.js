@@ -84,6 +84,11 @@ exports.update_whereabouts = async (req, res) => {
   } catch (error) {
     const code = error.response?.status || 500
     const message = error.response?.data || error.message
+
+    // Debug
+    const userIp = req.headers["x-forwarded-for"] || req.socket.remoteAddress
+    console.log({ jwt, userIp })
+
     throw createHttpError(code, message)
   }
 
@@ -96,7 +101,6 @@ exports.update_whereabouts = async (req, res) => {
     req.params.user_id ?? req.query.user_id ?? req.body.user_id ?? jwt_owner_id
 
   if (user_id === "self") user_id = jwt_owner_id
-
   if (!user_id) throw createHttpError(400, `User ID not specified`)
 
   const user_is_admin = jwt_owner.isAdmin

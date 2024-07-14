@@ -1,5 +1,7 @@
 const dotenv = require("dotenv")
 dotenv.config()
+const { version, author } = require("./package.json")
+console.log(`行先掲示板 v${version}`)
 
 const express = require("express")
 require("express-async-errors")
@@ -10,11 +12,8 @@ const cors = require("cors")
 const bodyParser = require("body-parser")
 
 const mongo = require("./mongo.js")
-const { version, author } = require("./package.json")
 const ws_auth = require("@moreillon/socketio_authentication_middleware")
 const promBundle = require("express-prom-bundle")
-
-console.log(`行先掲示板 v${version}`)
 
 const {
   APP_PORT = 80,
