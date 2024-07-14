@@ -87,7 +87,7 @@ exports.update_whereabouts = async (req, res) => {
 
     // Debug
     const userIp = req.headers["x-forwarded-for"] || req.socket.remoteAddress
-    console.log({ jwt, userIp })
+    console.log({ jwt, userIp, query: req.query })
 
     throw createHttpError(code, message)
   }
