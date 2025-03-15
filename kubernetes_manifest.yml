@@ -16,15 +16,9 @@ spec:
       containers:
         - name: ${APPLICATION_NAME}
           image: ${CONTAINER_IMAGE_TAGGED}
-          ports:
-            - containerPort: 80
-          # Get environment variables from secret
           envFrom:
             - secretRef:
                 name: environment-variables
-          env:
-            - name: IDENTIFICATION_URL
-              value: http://employee-manager/v3/users/self
 
 ---
 apiVersion: v1
