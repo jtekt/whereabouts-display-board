@@ -24,7 +24,6 @@ const {
   IDENTIFICATION_URL,
   OIDC_JWKS_URI,
   GROUP_MANAGER_API_URL = "UNDEFINED",
-  EMPLOYEE_MANAGER_API_URL = "UNDEFINED",
 } = process.env;
 
 const app = express();
@@ -52,7 +51,6 @@ app.get("/", (_req: Request, res: Response) => {
       oidc_jwks_uri: OIDC_JWKS_URI,
     },
     group_manager_api_url: GROUP_MANAGER_API_URL,
-    employee_manager_api_url: EMPLOYEE_MANAGER_API_URL,
     mongodb: {
       url: mongo.redactedConnectionString,
       connected: mongo.connected(),
@@ -63,7 +61,6 @@ app.get("/", (_req: Request, res: Response) => {
 app.use(getMiddlewareChain());
 app.route("/users/whereabouts").get(get_whereabouts);
 app.route("/users/:user_id").patch(update_whereabouts).put(update_whereabouts);
-app.route("/update").get(update_whereabouts); // legacy GET alias
 
 // Express error handler — must have 4 parameters for Express to treat it as error middleware
 app.use((err: HttpError, _req: Request, res: Response, _next: NextFunction) => {
