@@ -15,11 +15,14 @@ import { wsAuthMiddleware } from "./middleware/wsAuth";
 import { createJwtAuthHandler } from "./middleware/jwtAuth";
 import { get_whereabouts, update_whereabouts } from "./controllers/users";
 import { join_groups } from "./controllers/groups";
+import { getMiddlewareChain } from "./middleware/auth";
+
 import * as mongo from "./mongo";
 
 const {
   APP_PORT = "80",
   IDENTIFICATION_URL,
+  OIDC_JWKS_URI,
   GROUP_MANAGER_API_URL = "UNDEFINED",
   EMPLOYEE_MANAGER_API_URL = "UNDEFINED",
 } = process.env;
@@ -46,6 +49,7 @@ app.get("/", (_req: Request, res: Response) => {
     version,
     authentication: {
       identification_url: IDENTIFICATION_URL,
+      oidc_jwks_uri: OIDC_JWKS_URI,
     },
     group_manager_api_url: GROUP_MANAGER_API_URL,
     employee_manager_api_url: EMPLOYEE_MANAGER_API_URL,
@@ -56,6 +60,7 @@ app.get("/", (_req: Request, res: Response) => {
   });
 });
 
+app.use(getMiddlewareChain());
 app.route("/users/whereabouts").get(get_whereabouts);
 app.route("/users/:user_id").patch(update_whereabouts).put(update_whereabouts);
 app.route("/update").get(update_whereabouts); // legacy GET alias
