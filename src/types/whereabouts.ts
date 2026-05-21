@@ -25,17 +25,20 @@ export interface WsAuthPayload {
   jwt?: string
 }
 
-/** Payload sent by the client on the "get_members_of_group" WebSocket event */
-export interface GetMembersPayload {
-  group_id?: string
-}
-
-/** Shape of the group manager /members response */
-export interface GroupMembersResponse {
-  items: UserRecord[]
+/** Payload sent by the client on the "join_groups" WebSocket event */
+export interface JoinGroupsPayload {
+  group_ids?: string[]
 }
 
 /** Shape of the group manager /groups response */
 export interface UserGroupsResponse {
   items: GroupRecord[]
+}
+
+/** Incremental whereabouts update emitted as "whereabouts_updated" to group rooms */
+export interface WhereaboutsUpdate {
+  user_id: string
+  availability?: string
+  message?: string
+  last_update: string
 }
