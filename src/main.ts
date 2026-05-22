@@ -14,7 +14,10 @@ import "./mongo";
 import { wsAuthMiddleware } from "./middleware/wsAuth";
 import { createJwtAuthHandler } from "./middleware/jwtAuth";
 import { update_whereabouts } from "./controllers/users";
-import { get_members_of_group } from "./controllers/groups";
+import {
+  get_group_members_whereabouts,
+  get_members_of_group,
+} from "./controllers/groups";
 import * as mongo from "./mongo";
 import { authMiddleware } from "./middleware/httpAuth";
 
@@ -59,6 +62,7 @@ app.get("/", (_req: Request, res: Response) => {
 });
 
 app.use(authMiddleware());
+app.route("/groups/:group_id/whereabouts").get(get_group_members_whereabouts);
 app.route("/users/:user_id").patch(update_whereabouts).put(update_whereabouts);
 app.route("/update").get(update_whereabouts); // legacy GET alias
 
