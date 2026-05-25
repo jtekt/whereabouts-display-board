@@ -35,22 +35,21 @@ export function get_id_of_item(
  * Checks body, query params, and the Authorization header (Bearer scheme).
  */
 export function get_jwt(req: Request): string | undefined {
-  const fromBody =
-    (req.body as Record<string, string>).jwt ||
-    (req.body as Record<string, string>).token;
+  const auth = req.headers.authorization;
 
-  const fromQuery =
-    (req.query.jwt as string | undefined) ||
-    (req.query.token as string | undefined);
-
-  if (fromBody || fromQuery) return fromBody ?? fromQuery;
-
-  if (!req.headers.authorization) {
-    console.log(
-      "JWT not found in query or body and authorization header not set",
-    );
-    return undefined;
+  if (auth?.startsWith("Bearer ")) {
+    return auth.slice(7);
   }
 
-  return req.headers.authorization.split(" ")[1];
+  const token =
+    (req.body as Record<string, string> | undefined)?.jwt ??
+    (req.body as Record<string, string> | undefined)?.token ??
+    (req.query.jwt as string | undefined) ??
+    (req.query.token as string | undefined);
+
+  if (!token) {
+    console.log("get_jwt: JWT not found in request");
+  }
+
+  return token;
 }

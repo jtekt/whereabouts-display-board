@@ -109,7 +109,7 @@ export async function get_group_members_whereabouts(
 
   try {
     const url = `${GROUP_MANAGER_API_URL}/v3/groups/${group_id}/members`;
-    const headers = { authorization: jwt };
+    const headers = { authorization: `Bearer ${jwt}` };
     const params = {
       batch_size: limit,
       start_index: skip,
