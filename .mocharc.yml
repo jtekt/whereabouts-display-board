@@ -1,0 +1,4 @@
+require: tsx/cjs
+spec: test/**/*.ts
+timeout: 10000
+exit: true
