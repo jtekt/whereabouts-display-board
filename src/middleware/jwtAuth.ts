@@ -1,40 +1,152 @@
-import axios from "axios"
-import { Socket } from "socket.io"
-import { WsAuthPayload } from "../types/whereabouts"
+import { Request } from "express";
+import type { Response, NextFunction } from "express";
 
-const { IDENTIFICATION_URL, AUTHENTICATION_API_URL } = process.env
+import { Socket } from "socket.io";
 
-// Prefer the dedicated identification URL; fall back to the legacy auth API endpoint
-const authUrl = IDENTIFICATION_URL ?? `${AUTHENTICATION_API_URL}/user_from_jwt`
+import legacyAuth from "@moreillon/express_identification_middleware";
+// import oidcAuth from "@moreillon/express-oidc";
 
-console.log("[WS] Authentication URL:", authUrl)
+import createHttpError from "http-errors";
 
-type AuthCallback = (err: unknown, result: boolean) => void
+import { get_jwt } from "../utils/extractors";
+import { WsAuthPayload } from "../types/whereabouts";
 
-/**
- * Returns an authentication handler for a given socket.
- * The handler validates the JWT by calling the identification service.
- */
-export function createJwtAuthHandler(socket: Socket) {
-  return (message: WsAuthPayload, callback: AuthCallback): void => {
-    const { jwt } = message
+const {
+  // OIDC_JWKS_URI,
+  IDENTIFICATION_URL,
+} = process.env;
 
-    if (!jwt) {
-      console.log("[WS] No JWT provided")
-      callback(false, false)
-      return
+if (!IDENTIFICATION_URL) {
+  throw createHttpError(400, "Identification URL not provided");
+}
+console.log("[WS] Authentication URL:", IDENTIFICATION_URL);
+const legacyMiddleware = legacyAuth({
+  url: IDENTIFICATION_URL,
+});
+
+/*
+const oidcMiddleware = oidcAuth({
+  jwksUri: OIDC_JWKS_URI!,
+});
+*/
+
+const normalizeJwt = (req: Partial<Request>): void => {
+  req.headers ??= {};
+
+  if (req.headers.authorization) return;
+
+  const token = get_jwt(req as Request);
+
+  if (token) {
+    req.headers.authorization = `Bearer ${token}`;
+  }
+};
+
+const fakeResponseMethods = {
+  status() {
+    return this;
+  },
+
+  send(payload: unknown) {
+    throw payload;
+  },
+};
+
+const createFakeResponse = () => ({
+  locals: {},
+  ...fakeResponseMethods,
+});
+
+const runMiddleware = (
+  middleware: (req: Request, res: Response, next: NextFunction) => void,
+  req: Partial<Request>,
+): Promise<void> => {
+  const fakeRes = createFakeResponse();
+
+  return new Promise((resolve, reject) => {
+    middleware(
+      req as Request,
+      fakeRes as unknown as Response,
+      (error?: unknown) => {
+        if (error) {
+          reject(error);
+          return;
+        }
+
+        resolve();
+      },
+    );
+  });
+};
+
+export async function authenticateRequestLike(
+  req: Partial<Request>,
+): Promise<void> {
+  normalizeJwt(req);
+
+  // Future OIDC implementation
+  /*
+  if (OIDC_JWKS_URI) {
+    const token =
+      req.headers?.authorization?.split(" ")[1];
+
+    let hasKid = false;
+
+    if (token) {
+      try {
+        const header = JSON.parse(
+          Buffer.from(
+            token.split(".")[0],
+            "base64url",
+          ).toString("utf8"),
+        );
+
+        hasKid = !!header.kid;
+      } catch {
+        // malformed token
+      }
     }
 
-    axios
-      .get(authUrl, { params: { jwt } })
-      .then(() => {
-        socket.jwt = jwt
-        console.log("[WS] JWT valid")
-        callback(false, true)
-      })
-      .catch((err: unknown) => {
-        console.log("[WS] JWT invalid", err)
-        callback(err, false)
-      })
+    return runMiddleware(
+      hasKid
+        ? oidcMiddleware
+        : legacyMiddleware,
+      req,
+    );
   }
+  */
+
+  return runMiddleware(legacyMiddleware, req);
+}
+
+type AuthCallback = (err: unknown, result: boolean) => void;
+
+export function createJwtAuthHandler(socket: Socket) {
+  return async (
+    message: WsAuthPayload,
+    callback: AuthCallback,
+  ): Promise<void> => {
+    try {
+      const { jwt } = message;
+
+      if (!jwt) {
+        callback(false, false);
+        return;
+      }
+
+      const fakeReq: Partial<Request> = {
+        headers: {
+          authorization: `Bearer ${jwt}`,
+        },
+      };
+
+      await authenticateRequestLike(fakeReq);
+
+      socket.jwt = jwt;
+
+      callback(false, true);
+    } catch (err) {
+      callback(err, false);
+    }
+  };
 }
