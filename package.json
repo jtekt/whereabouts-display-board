@@ -14,7 +14,6 @@
   "license": "MIT",
   "dependencies": {
     "@moreillon/express_identification_middleware": "^1.6.0",
-    "@moreillon/express-oidc": "^2.2.0",
     "axios": "^1.16.1",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
