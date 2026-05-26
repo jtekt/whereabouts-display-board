@@ -34,7 +34,10 @@ const http_server = http.createServer(app);
 export const io = new Server(http_server, {
   allowEIO3: true,
   cors: {
-    origin: "*",
+    // dynamically allow all origins while still supporting credentials.
+    origin: (origin, callback) => {
+      callback(null, true);
+    },
     methods: ["GET", "POST"],
     credentials: true,
   },
