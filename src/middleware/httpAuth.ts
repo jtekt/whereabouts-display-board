@@ -1,46 +1,42 @@
-import { Request, RequestHandler } from "express";
+import { NextFunction, Request, Response } from "express";
 import legacyAuth from "@moreillon/express_identification_middleware";
-// import oidcAuth from "@moreillon/express-oidc";
-import createHttpError from "http-errors";
+import oidcAuth from "@moreillon/express-oidc";
 import { get_jwt } from "../utils/extractors";
 
-const {
-  // OIDC_JWKS_URI,
-  IDENTIFICATION_URL,
-} = process.env;
+const { OIDC_JWKS_URI, IDENTIFICATION_URL } = process.env;
 
-const normalizeJwt = (req: Request): void => {
-  // Respect already existing authorization headers
+const normalizeJwt = (req: Request) => {
+  // Respect already‑existing headers
   if (req.headers.authorization) return;
 
   const token = get_jwt(req);
-
   if (token) {
     req.headers.authorization = `Bearer ${token}`;
   }
 };
 
-export const authMiddleware = (): RequestHandler => {
-  // if (!IDENTIFICATION_URL && !OIDC_JWKS_URI) {
-  if (!IDENTIFICATION_URL) {
-    throw createHttpError(
-      400,
-      // "Identification URL or OIDC JWKS URI not provided",
-      "Identification URL not provided",
-    );
+export const authMiddleware = () => {
+  // Nothing configured → no auth
+  if (!IDENTIFICATION_URL && !OIDC_JWKS_URI) {
+    return (_req: Request, _res: Response, next: NextFunction) => next();
   }
 
-  // Future OIDC implementation
-  /*
-  if (IDENTIFICATION_URL && OIDC_JWKS_URI) {
-    const legacyMiddleware = legacyAuth({ url: IDENTIFICATION_URL });
-    const oidcMiddleware = oidcAuth({ jwksUri: OIDC_JWKS_URI });
+  const legacyMiddleware = IDENTIFICATION_URL
+    ? legacyAuth({ url: IDENTIFICATION_URL })
+    : null;
 
-    const selectorMiddleware: RequestHandler = (req, res, next) => {
+  const oidcMiddleware = OIDC_JWKS_URI
+    ? oidcAuth({ jwksUri: OIDC_JWKS_URI })
+    : null;
+
+  // Both enabled → dynamic selection
+  if (legacyMiddleware && oidcMiddleware) {
+    console.log("[Auth] Both Legacy and OIDC auth are enabled");
+
+    return (req: Request, res: Response, next: NextFunction) => {
       normalizeJwt(req);
 
       const token = req.headers.authorization?.split(" ")[1];
-
       let hasKid = false;
 
       if (token) {
@@ -61,29 +57,28 @@ export const authMiddleware = (): RequestHandler => {
       if (hasKid) {
         return oidcMiddleware(req, res, next);
       }
-
       return legacyMiddleware(req, res, next);
     };
-
-    // return exactly one middleware
-    return selectorMiddleware;
   }
-  */
 
-  const legacyMiddleware = legacyAuth({ url: IDENTIFICATION_URL });
+  // Only legacy
+  if (legacyMiddleware) {
+    console.log(`[Auth] Legacy auth enabled: ${IDENTIFICATION_URL}`);
+    return (req: Request, res: Response, next: NextFunction) => {
+      normalizeJwt(req);
+      return legacyMiddleware(req, res, next);
+    };
+  }
 
-  return (req, res, next) => {
-    normalizeJwt(req);
-    return legacyMiddleware(req, res, next);
-  };
+  // Only OIDC
+  if (oidcMiddleware) {
+    console.log(`[Auth] OIDC auth enabled: ${OIDC_JWKS_URI}`);
+    return (req: Request, res: Response, next: NextFunction) => {
+      normalizeJwt(req);
+      return oidcMiddleware(req, res, next);
+    };
+  }
 
-  // Future OIDC-only implementation
-  /*
-  const oidcMiddleware = oidcAuth({ jwksUri: OIDC_JWKS_URI! });
-
-  return (req, res, next) => {
-    normalizeJwt(req);
-    return oidcMiddleware(req, res, next);
-  };
-  */
+  // Should never reach here
+  return (_req: Request, _res: Response, next: NextFunction) => next();
 };

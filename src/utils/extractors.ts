@@ -27,6 +27,14 @@ export function get_id_of_item(
     if (typeof identity === "number") return identity;
   }
 
+  // OIDC identifier (preferred_username or configured field)
+  const oidcField = process.env.OIDC_IDENTIFIER || "preferred_username";
+  const oidcValue = item[oidcField];
+  if (typeof oidcValue === "string" || typeof oidcValue === "number") {
+    return oidcValue;
+  }
+
+  // Nothing matched
   return undefined;
 }
 

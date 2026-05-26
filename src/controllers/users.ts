@@ -55,9 +55,32 @@ export async function update_whereabouts(
   const jwt = get_jwt(req);
   if (!jwt) throw createHttpError(403, "JWT not found");
 
-  // Identify JWT owner
-  const jwt_owner = (req as any).user;
+  // Identify JWT owner (legacy or OIDC)
+  let jwt_owner = (req as any).user;
   const jwt_owner_id = get_id_of_item(jwt_owner as Record<string, unknown>);
+  if (!jwt_owner_id) {
+    throw createHttpError(400, "Unable to determine user identity from JWT");
+  }
+
+  // If OIDC user has no isAdmin, fetch authoritative user record ONCE
+  if (jwt_owner.isAdmin === undefined) {
+    try {
+      const { data } = await axios.get<UserRecord>(
+        `${EMPLOYEE_MANAGER_API_URL}/v3/users/${jwt_owner_id}`,
+        { params: { jwt } },
+      );
+      jwt_owner = data;
+    } catch (error) {
+      const err = error as {
+        response?: { status: number; data: string };
+        message: string;
+      };
+      throw createHttpError(
+        err.response?.status ?? 500,
+        err.response?.data ?? err.message,
+      );
+    }
+  }
 
   // Resolve target user id
   let user_id: string | number | undefined =
@@ -69,19 +92,21 @@ export async function update_whereabouts(
   if (user_id === "self") user_id = jwt_owner_id;
   if (!user_id) throw createHttpError(400, "User ID not specified");
 
-  const user_is_admin = jwt_owner.isAdmin;
-  if (String(jwt_owner_id) !== String(user_id) && !user_is_admin) {
+  const user_is_admin = jwt_owner.isAdmin === true;
+
+  // Permission check
+  const modifying_self = String(jwt_owner_id) === String(user_id);
+  if (!modifying_self && !user_is_admin) {
     throw createHttpError(403, "Unauthorized to modify another user");
   }
 
-  // Fetch full user ONLY when needed
+  // Fetch target user ONLY IF modifying another user
   let user: UserRecord;
-
-  if (String(user_id) === String(jwt_owner_id)) {
-    // It's "self", so no need to fetch from API
-    user = jwt_owner as UserRecord;
+  if (modifying_self) {
+    // Use already-known owner info, no second fetch
+    user = jwt_owner;
   } else {
-    // Admin updating another user, fetch user record
+    // Admin modifying someone else -> fetch target user
     try {
       const { data } = await axios.get<UserRecord>(
         `${EMPLOYEE_MANAGER_API_URL}/v3/users/${user_id}`,
@@ -100,7 +125,7 @@ export async function update_whereabouts(
     }
   }
 
-  // Extract update fields — support legacy query/body param names
+  // Extract update fields
   const message =
     (req.body as Record<string, string>).message ||
     (req.body as Record<string, string>).current_location ||
@@ -119,9 +144,8 @@ export async function update_whereabouts(
 
   // Upsert whereabouts
   const update: Record<string, unknown> = { $set: { last_update: new Date() } };
-  if (message) (update as Record<string, unknown>).message = message;
-  if (availability)
-    (update as Record<string, unknown>).availability = availability;
+  if (message) update.message = message;
+  if (availability) update.availability = availability;
 
   const new_whereabouts = await Whereabouts.findOneAndUpdate(
     { user_id: String(user_id) },
@@ -133,7 +157,7 @@ export async function update_whereabouts(
   );
   user.whereabouts = new_whereabouts ?? undefined;
 
-  // Best-effort: update WebSocket rooms. Errors are logged, not propagated.
+  // WebSocket update
   update_rooms_of_user(user, jwt).catch((err) => {
     console.error("[WS] Failed to update rooms:", err);
   });

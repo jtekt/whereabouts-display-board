@@ -4,31 +4,26 @@ import type { Response, NextFunction } from "express";
 import { Socket } from "socket.io";
 
 import legacyAuth from "@moreillon/express_identification_middleware";
-// import oidcAuth from "@moreillon/express-oidc";
+import oidcAuth from "@moreillon/express-oidc";
 
 import createHttpError from "http-errors";
 
 import { get_jwt } from "../utils/extractors";
 import { WsAuthPayload } from "../types/whereabouts";
 
-const {
-  // OIDC_JWKS_URI,
-  IDENTIFICATION_URL,
-} = process.env;
+const { OIDC_JWKS_URI, IDENTIFICATION_URL } = process.env;
 
 if (!IDENTIFICATION_URL) {
   throw createHttpError(400, "Identification URL not provided");
 }
-console.log("[WS] Authentication URL:", IDENTIFICATION_URL);
+console.log("[WS] Authentication URL:", IDENTIFICATION_URL, OIDC_JWKS_URI);
 const legacyMiddleware = legacyAuth({
   url: IDENTIFICATION_URL,
 });
 
-/*
 const oidcMiddleware = oidcAuth({
   jwksUri: OIDC_JWKS_URI!,
 });
-*/
 
 const normalizeJwt = (req: Partial<Request>): void => {
   req.headers ??= {};
@@ -84,21 +79,15 @@ export async function authenticateRequestLike(
 ): Promise<void> {
   normalizeJwt(req);
 
-  // Future OIDC implementation
-  /*
   if (OIDC_JWKS_URI) {
-    const token =
-      req.headers?.authorization?.split(" ")[1];
+    const token = req.headers?.authorization?.split(" ")[1];
 
     let hasKid = false;
 
     if (token) {
       try {
         const header = JSON.parse(
-          Buffer.from(
-            token.split(".")[0],
-            "base64url",
-          ).toString("utf8"),
+          Buffer.from(token.split(".")[0], "base64url").toString("utf8"),
         );
 
         hasKid = !!header.kid;
@@ -107,14 +96,8 @@ export async function authenticateRequestLike(
       }
     }
 
-    return runMiddleware(
-      hasKid
-        ? oidcMiddleware
-        : legacyMiddleware,
-      req,
-    );
+    return runMiddleware(hasKid ? oidcMiddleware : legacyMiddleware, req);
   }
-  */
 
   return runMiddleware(legacyMiddleware, req);
 }

@@ -87,6 +87,7 @@ export function get_members_of_group(socket: Socket) {
       });
   };
 }
+
 export async function get_group_members_whereabouts(
   req: Request,
   res: Response,
@@ -141,7 +142,7 @@ export async function get_group_members_whereabouts(
       }
 
       for (const user of users) {
-        const user_id = String(get_id_of_item(user));
+        const user_id = String(user);
         const entry = entriesMap[user_id];
 
         user.whereabouts = entry || {
