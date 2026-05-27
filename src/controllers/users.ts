@@ -55,16 +55,18 @@ export async function update_whereabouts(
   const jwt = get_jwt(req);
   if (!jwt) throw createHttpError(403, "JWT not found");
 
+  // Legacy GET endpoints may not have a body
+  const body = (req.body ?? {}) as Partial<Record<string, string>>;
+  const query = req.query as Record<string, string | undefined>;
+  const params = req.params as Record<string, string | undefined>;
+
   // Identify JWT owner
   const jwt_owner = (req as any).user;
   const jwt_owner_id = get_id_of_item(jwt_owner as Record<string, unknown>);
 
   // Resolve target user id
   let user_id: string | number | undefined =
-    (req.params.user_id as string | undefined) ??
-    (req.query.user_id as string | undefined) ??
-    (req.body as Record<string, string>).user_id ??
-    jwt_owner_id;
+    params.user_id ?? query.user_id ?? body.user_id ?? jwt_owner_id;
 
   if (user_id === "self") user_id = jwt_owner_id;
   if (!user_id) throw createHttpError(400, "User ID not specified");
@@ -102,16 +104,13 @@ export async function update_whereabouts(
 
   // Extract update fields — support legacy query/body param names
   const message =
-    (req.body as Record<string, string>).message ||
-    (req.body as Record<string, string>).current_location ||
-    (req.query.current_location as string | undefined) ||
-    (req.query.message as string | undefined);
+    body.message ||
+    body.current_location ||
+    query.current_location ||
+    query.message;
 
   const availability =
-    (req.body as Record<string, string>).availability ||
-    (req.body as Record<string, string>).presence ||
-    (req.query.availability as string | undefined) ||
-    (req.query.presence as string | undefined);
+    body.availability || body.presence || query.availability || query.presence;
 
   if (!message && !availability) {
     throw createHttpError(400, "Message or availability not provided");
