@@ -3,10 +3,6 @@ stages:
   - test
   - deploy
 
-image: moreillon/tdd-dind
-services:
-  - name: docker:19.03.12-dind
-
 variables:
   APPLICATION_NAME: whereabouts-display-board
 
@@ -19,13 +15,9 @@ variables:
 
 build:
   stage: build
-  tags:
-    - dind
   only:
     - master
   before_script:
-    # Registry login
-    - aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin ${AWS_ECR_PUBLIC_URL}
     # Create repository in ECR if it does not exist yet
     - >
       aws ecr-public create-repository --region us-east-1 --repository-name ${APPLICATION_NAME}
@@ -39,17 +31,17 @@ test:
   coverage: '/All files[^|]*\|[^|]*\s+([\d\.]+)/'
   only:
     - master
-  tags:
-    - dind
   before_script:
-    # Registry login
-    - aws ecr-public get-login-password --region us-east-1 | docker login --username AWS --password-stdin ${AWS_ECR_PUBLIC_URL}
     # Create repository in ECR if it does not exist yet
     - >
       aws ecr-public create-repository --region us-east-1 --repository-name ${APPLICATION_NAME}
       || echo "Repository might have already existed"
   script:
-    - docker run --rm ${CONTAINER_IMAGE_TEST} npm run coverage
+    - >
+      docker run --rm
+      --env IDENTIFICATION_URL=http://employee-manager/v3/users/self
+      ${CONTAINER_IMAGE_TEST}
+      npm run coverage
 
     - docker tag ${CONTAINER_IMAGE_TEST} ${CONTAINER_IMAGE_LATEST}
     - docker tag ${CONTAINER_IMAGE_TEST} ${CONTAINER_IMAGE_TAGGED}
