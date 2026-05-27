@@ -5,7 +5,7 @@
   "main": "dist/main.js",
   "scripts": {
     "build": "tsc",
-    "start": "node dist/index.js",
+    "start": "node dist/main.js",
     "dev": "tsx watch src/main.ts",
     "test": "mocha",
     "coverage": "nyc mocha"
