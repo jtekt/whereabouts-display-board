@@ -3,7 +3,7 @@ import type { Response, NextFunction } from "express";
 
 import { Socket } from "socket.io";
 
-import legacyAuth from "@moreillon/express_identification_middleware";
+import legacyAuth from "@jtekt/express-account-manager-identification-middleware";
 
 import createHttpError from "http-errors";
 

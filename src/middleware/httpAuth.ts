@@ -1,5 +1,5 @@
 import { Request, RequestHandler } from "express";
-import legacyAuth from "@moreillon/express_identification_middleware";
+import legacyAuth from "@jtekt/express-account-manager-identification-middleware";
 import createHttpError from "http-errors";
 import { get_jwt } from "../utils/extractors";
 
