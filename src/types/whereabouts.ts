@@ -23,6 +23,9 @@ export interface GroupRecord {
 /** Payload sent by the client on the "authentication" WebSocket event */
 export interface WsAuthPayload {
   jwt?: string;
+  token?: string;
+  apiKey?: string;
+  api_key?: string;
 }
 
 /** Payload sent by the client on the "get_members_of_group" WebSocket event */

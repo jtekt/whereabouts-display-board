@@ -7,7 +7,6 @@ import middleware from "@jtekt/express-authentication-middleware";
 
 import createHttpError from "http-errors";
 
-import { get_jwt } from "../utils/extractors";
 import { WsAuthPayload } from "../types/whereabouts";
 import { options } from "./httpAuth";
 
@@ -19,15 +18,20 @@ if (!IDENTIFICATION_URL) {
 console.log("[WS] Authentication URL:", IDENTIFICATION_URL);
 const authMiddleware = middleware(options);
 
-const normalizeJwt = (req: Partial<Request>): void => {
+const normalizeCredentials = (
+  req: Partial<Request>,
+  payload: WsAuthPayload,
+): void => {
   req.headers ??= {};
 
-  if (req.headers.authorization) return;
-
-  const token = get_jwt(req as Request);
-
-  if (token) {
+  const token = payload.jwt ?? payload.token;
+  if (token && !req.headers.authorization) {
     req.headers.authorization = `Bearer ${token}`;
+  }
+
+  const apiKey = payload.apiKey ?? payload.api_key;
+  if (apiKey && !req.headers["x-api-key"]) {
+    req.headers["x-api-key"] = apiKey;
   }
 };
 
@@ -70,8 +74,9 @@ const runMiddleware = (
 
 export async function authenticateRequestLike(
   req: Partial<Request>,
+  payload: WsAuthPayload = {},
 ): Promise<void> {
-  normalizeJwt(req);
+  normalizeCredentials(req, payload);
   return runMiddleware(authMiddleware, req);
 }
 
@@ -83,22 +88,20 @@ export function createJwtAuthHandler(socket: Socket) {
     callback: AuthCallback,
   ): Promise<void> => {
     try {
-      const { jwt } = message;
+      const hasJwt = !!(message.jwt ?? message.token);
+      const hasApiKey = !!(message.apiKey ?? message.api_key);
 
-      if (!jwt) {
+      if (!hasJwt && !hasApiKey) {
         callback(false, false);
         return;
       }
 
-      const fakeReq: Partial<Request> = {
-        headers: {
-          authorization: `Bearer ${jwt}`,
-        },
-      };
+      const fakeReq: Partial<Request> = { headers: {} };
 
-      await authenticateRequestLike(fakeReq);
+      await authenticateRequestLike(fakeReq, message);
 
-      socket.jwt = jwt;
+      if (hasJwt) socket.jwt = message.jwt ?? message.token;
+      if (hasApiKey) socket.apiKey = message.apiKey ?? message.api_key;
 
       callback(false, true);
     } catch (err) {

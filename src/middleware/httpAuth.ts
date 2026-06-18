@@ -4,7 +4,7 @@ import middleware, {
 } from "@jtekt/express-authentication-middleware";
 
 import createHttpError from "http-errors";
-import { get_jwt } from "../utils/extractors";
+import { get_jwt, get_api_key } from "../utils/extractors";
 
 const { IDENTIFICATION_URL } = process.env;
 
@@ -26,6 +26,16 @@ const normalizeJwt = (req: Request): void => {
   }
 };
 
+const normalizeApiKey = (req: Request): void => {
+  if (req.headers["x-api-key"]) return;
+
+  const apiKey = get_api_key(req);
+
+  if (apiKey) {
+    req.headers["x-api-key"] = apiKey;
+  }
+};
+
 export const authMiddleware = (): RequestHandler => {
   if (!IDENTIFICATION_URL) {
     throw createHttpError(
@@ -37,6 +47,7 @@ export const authMiddleware = (): RequestHandler => {
 
   return (req, res, next) => {
     normalizeJwt(req);
+    normalizeApiKey(req);
     return middleware(options)(req, res, next);
   };
 };

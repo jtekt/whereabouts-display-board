@@ -32,7 +32,7 @@ export function get_id_of_item(
 
 /**
  * Extracts the JWT from the request.
- * Checks body, query params, and the Authorization header (Bearer scheme).
+ * Checks the Authorization header, query params, cookies, and body.
  */
 export function get_jwt(req: Request): string | undefined {
   const auth = req.headers.authorization;
@@ -42,14 +42,31 @@ export function get_jwt(req: Request): string | undefined {
   }
 
   const token =
-    (req.body as Record<string, string> | undefined)?.jwt ??
-    (req.body as Record<string, string> | undefined)?.token ??
     (req.query.jwt as string | undefined) ??
-    (req.query.token as string | undefined);
+    (req.query.token as string | undefined) ??
+    (req.cookies as Record<string, string> | undefined)?.jwt ??
+    (req.cookies as Record<string, string> | undefined)?.token ??
+    (req.body as Record<string, string> | undefined)?.jwt ??
+    (req.body as Record<string, string> | undefined)?.token;
 
   if (!token) {
     console.log("get_jwt: JWT not found in request");
   }
 
   return token;
+}
+
+/**
+ * Extracts an API key from the request.
+ * Checks the x-api-key header, query params, and cookies.
+ */
+export function get_api_key(req: Request): string | undefined {
+  const headerKey = req.headers["x-api-key"];
+  if (typeof headerKey === "string" && headerKey) return headerKey;
+
+  const apiKey =
+    (req.query.api_key as string | undefined) ??
+    (req.query.apikey as string | undefined);
+
+  return apiKey;
 }

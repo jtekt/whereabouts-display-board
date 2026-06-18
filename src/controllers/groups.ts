@@ -41,7 +41,11 @@ export function get_members_of_group(socket: Socket) {
 
     const url = `${GROUP_MANAGER_API_URL}/v3/groups/${group_id}/members`;
     const params = { batch_size: -1 };
-    const headers = { Authorization: `Bearer ${socket.jwt}` };
+    const headers: Record<string, string> = socket.jwt
+      ? { Authorization: `Bearer ${socket.jwt}` }
+      : socket.apiKey
+        ? { "x-api-key": socket.apiKey }
+        : {};
 
     let users: UserRecord[] = [];
 
