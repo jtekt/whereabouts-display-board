@@ -3,12 +3,13 @@ import type { Response, NextFunction } from "express";
 
 import { Socket } from "socket.io";
 
-import legacyAuth from "@jtekt/express-account-manager-identification-middleware";
+import middleware from "@jtekt/express-authentication-middleware";
 
 import createHttpError from "http-errors";
 
 import { get_jwt } from "../utils/extractors";
 import { WsAuthPayload } from "../types/whereabouts";
+import { options } from "./httpAuth";
 
 const { IDENTIFICATION_URL } = process.env;
 
@@ -16,9 +17,7 @@ if (!IDENTIFICATION_URL) {
   throw createHttpError(400, "Identification URL not provided");
 }
 console.log("[WS] Authentication URL:", IDENTIFICATION_URL);
-const legacyMiddleware = legacyAuth({
-  url: IDENTIFICATION_URL,
-});
+const authMiddleware = middleware(options);
 
 const normalizeJwt = (req: Partial<Request>): void => {
   req.headers ??= {};
@@ -73,7 +72,7 @@ export async function authenticateRequestLike(
   req: Partial<Request>,
 ): Promise<void> {
   normalizeJwt(req);
-  return runMiddleware(legacyMiddleware, req);
+  return runMiddleware(authMiddleware, req);
 }
 
 type AuthCallback = (err: unknown, result: boolean) => void;

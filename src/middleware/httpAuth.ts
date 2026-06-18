@@ -1,9 +1,20 @@
 import { Request, RequestHandler } from "express";
-import legacyAuth from "@jtekt/express-account-manager-identification-middleware";
+import middleware, {
+  type Options,
+} from "@jtekt/express-authentication-middleware";
+
 import createHttpError from "http-errors";
 import { get_jwt } from "../utils/extractors";
 
 const { IDENTIFICATION_URL } = process.env;
+
+export const options: Options = {
+  strategies: {
+    identification: {
+      url: IDENTIFICATION_URL,
+    },
+  },
+};
 
 const normalizeJwt = (req: Request): void => {
   if (req.headers.authorization) return;
@@ -24,10 +35,8 @@ export const authMiddleware = (): RequestHandler => {
     );
   }
 
-  const legacyMiddleware = legacyAuth({ url: IDENTIFICATION_URL });
-
   return (req, res, next) => {
     normalizeJwt(req);
-    return legacyMiddleware(req, res, next);
+    return middleware(options)(req, res, next);
   };
 };

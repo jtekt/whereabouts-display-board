@@ -13,7 +13,7 @@
   "author": "Maxime Moreillon",
   "license": "MIT",
   "dependencies": {
-    "@jtekt/express-account-manager-identification-middleware": "^1.0.0",
+    "@jtekt/express-authentication-middleware": "^0.2.0",
     "axios": "^1.16.1",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
