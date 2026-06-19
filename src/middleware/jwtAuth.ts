@@ -18,17 +18,28 @@ if (!IDENTIFICATION_URL) {
 console.log("[WS] Authentication URL:", IDENTIFICATION_URL);
 const authMiddleware = middleware(options);
 
-const normalizeJwt = (
-  req: Partial<Request>,
+/**
+ * Extracts a JWT from either the handshake headers or the authentication payload.
+ * Header takes precedence over payload.
+ */
+function extractToken(
+  socket: Socket,
   payload: WsAuthPayload,
-): void => {
-  req.headers ??= {};
-
-  const token = payload.jwt ?? payload.token;
-  if (token && !req.headers.authorization) {
-    req.headers.authorization = `Bearer ${token}`;
+): string | undefined {
+  const authHeader = socket.handshake.headers.authorization;
+  if (authHeader?.startsWith("Bearer ")) {
+    return authHeader.slice(7);
   }
-};
+
+  const authToken = socket.handshake.auth?.token ?? socket.handshake.auth?.jwt;
+
+  if (typeof authToken === "string") {
+    return authToken;
+  }
+
+  // authentication event payload
+  return payload.jwt ?? payload.token;
+}
 
 const fakeResponseMethods = {
   status() {
@@ -67,11 +78,10 @@ const runMiddleware = (
   });
 };
 
-export async function authenticateRequestLike(
-  req: Partial<Request>,
-  payload: WsAuthPayload = {},
-): Promise<void> {
-  normalizeJwt(req, payload);
+export async function authenticateRequestLike(token: string): Promise<void> {
+  const req: Partial<Request> = {
+    headers: { authorization: `Bearer ${token}` },
+  };
   return runMiddleware(authMiddleware, req);
 }
 
@@ -83,16 +93,14 @@ export function createJwtAuthHandler(socket: Socket) {
     callback: AuthCallback,
   ): Promise<void> => {
     try {
-      const token = message.jwt ?? message.token;
+      const token = extractToken(socket, message);
 
       if (!token) {
         callback(false, false);
         return;
       }
 
-      const fakeReq: Partial<Request> = { headers: {} };
-
-      await authenticateRequestLike(fakeReq, message);
+      await authenticateRequestLike(token);
 
       socket.jwt = token;
 
@@ -101,4 +109,19 @@ export function createJwtAuthHandler(socket: Socket) {
       callback(err, false);
     }
   };
+}
+
+/**
+ * Attempts to authenticate a socket using only its connection headers.
+ * Returns the token on success, undefined if no header token is present.
+ * Throws if the token is present but invalid.
+ */
+export async function authenticateFromHeaders(
+  socket: Socket,
+): Promise<string | undefined> {
+  const token = extractToken(socket, {});
+  if (!token) return undefined;
+
+  await authenticateRequestLike(token);
+  return token;
 }
