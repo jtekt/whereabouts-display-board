@@ -12,7 +12,10 @@ import promBundle from "express-prom-bundle";
 
 import "./mongo";
 import { wsAuthMiddleware } from "./middleware/wsAuth";
-import { createJwtAuthHandler } from "./middleware/jwtAuth";
+import {
+  createJwtAuthHandler,
+  authenticateFromHeaders,
+} from "./middleware/jwtAuth";
 import { update_whereabouts } from "./controllers/users";
 import {
   get_group_members_whereabouts,
@@ -76,7 +79,22 @@ app.use((err: HttpError, _req: Request, res: Response, _next: NextFunction) => {
 });
 
 // WebSocket
-io.on("connection", (socket) => {
+io.on("connection", async (socket) => {
+  // Attempt header-based authentication at connection time.
+  // If the client sent Authorization: Bearer <token> in extraHeaders,
+  // authenticate immediately without requiring an "authentication" event.
+  try {
+    const token = await authenticateFromHeaders(socket);
+    if (token) {
+      socket.jwt = token;
+      socket.authenticated = true;
+      socket.join("authenticated");
+      socket.emit("authenticated");
+    }
+  } catch {
+    // Invalid header token — let wsAuthMiddleware handle the rejection per-event.
+  }
+
   socket.use(wsAuthMiddleware(socket, createJwtAuthHandler(socket)) as never);
   socket.on("get_members_of_group", get_members_of_group(socket));
 });

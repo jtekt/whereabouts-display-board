@@ -1,9 +1,20 @@
 import { Request, RequestHandler } from "express";
-import legacyAuth from "@moreillon/express_identification_middleware";
+import middleware, {
+  type Options,
+} from "@jtekt/express-authentication-middleware";
+
 import createHttpError from "http-errors";
-import { get_jwt } from "../utils/extractors";
+import { get_jwt, get_api_key } from "../utils/extractors";
 
 const { IDENTIFICATION_URL } = process.env;
+
+export const options: Options = {
+  strategies: {
+    identification: {
+      url: IDENTIFICATION_URL,
+    },
+  },
+};
 
 const normalizeJwt = (req: Request): void => {
   if (req.headers.authorization) return;
@@ -12,6 +23,16 @@ const normalizeJwt = (req: Request): void => {
 
   if (token) {
     req.headers.authorization = `Bearer ${token}`;
+  }
+};
+
+const normalizeApiKey = (req: Request): void => {
+  if (req.headers["x-api-key"]) return;
+
+  const apiKey = get_api_key(req);
+
+  if (apiKey) {
+    req.headers["x-api-key"] = apiKey;
   }
 };
 
@@ -24,10 +45,9 @@ export const authMiddleware = (): RequestHandler => {
     );
   }
 
-  const legacyMiddleware = legacyAuth({ url: IDENTIFICATION_URL });
-
   return (req, res, next) => {
     normalizeJwt(req);
-    return legacyMiddleware(req, res, next);
+    normalizeApiKey(req);
+    return middleware(options)(req, res, next);
   };
 };
