@@ -18,7 +18,7 @@ if (!IDENTIFICATION_URL) {
 console.log("[WS] Authentication URL:", IDENTIFICATION_URL);
 const authMiddleware = middleware(options);
 
-const normalizeCredentials = (
+const normalizeJwt = (
   req: Partial<Request>,
   payload: WsAuthPayload,
 ): void => {
@@ -27,11 +27,6 @@ const normalizeCredentials = (
   const token = payload.jwt ?? payload.token;
   if (token && !req.headers.authorization) {
     req.headers.authorization = `Bearer ${token}`;
-  }
-
-  const apiKey = payload.apiKey ?? payload.api_key;
-  if (apiKey && !req.headers["x-api-key"]) {
-    req.headers["x-api-key"] = apiKey;
   }
 };
 
@@ -76,7 +71,7 @@ export async function authenticateRequestLike(
   req: Partial<Request>,
   payload: WsAuthPayload = {},
 ): Promise<void> {
-  normalizeCredentials(req, payload);
+  normalizeJwt(req, payload);
   return runMiddleware(authMiddleware, req);
 }
 
@@ -88,10 +83,9 @@ export function createJwtAuthHandler(socket: Socket) {
     callback: AuthCallback,
   ): Promise<void> => {
     try {
-      const hasJwt = !!(message.jwt ?? message.token);
-      const hasApiKey = !!(message.apiKey ?? message.api_key);
+      const token = message.jwt ?? message.token;
 
-      if (!hasJwt && !hasApiKey) {
+      if (!token) {
         callback(false, false);
         return;
       }
@@ -100,8 +94,7 @@ export function createJwtAuthHandler(socket: Socket) {
 
       await authenticateRequestLike(fakeReq, message);
 
-      if (hasJwt) socket.jwt = message.jwt ?? message.token;
-      if (hasApiKey) socket.apiKey = message.apiKey ?? message.api_key;
+      socket.jwt = token;
 
       callback(false, true);
     } catch (err) {

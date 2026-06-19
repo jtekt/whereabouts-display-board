@@ -58,7 +58,7 @@ export function get_jwt(req: Request): string | undefined {
 
 /**
  * Extracts an API key from the request.
- * Checks the x-api-key header, query params, and cookies.
+ * Checks the x-api-key header and query params.
  */
 export function get_api_key(req: Request): string | undefined {
   const headerKey = req.headers["x-api-key"];
