@@ -2,7 +2,7 @@ import axios from "axios";
 import { Request, Response } from "express";
 import { Socket } from "socket.io";
 import Whereabouts from "../models/whereabouts";
-import { get_id_of_item, get_jwt } from "../utils/extractors";
+import { get_id_of_item, get_jwt, get_api_key } from "../utils/extractors";
 import {
   UserRecord,
   GroupMembersResponse,
@@ -41,7 +41,9 @@ export function get_members_of_group(socket: Socket) {
 
     const url = `${GROUP_MANAGER_API_URL}/v3/groups/${group_id}/members`;
     const params = { batch_size: -1 };
-    const headers = { Authorization: `Bearer ${socket.jwt}` };
+    const headers: Record<string, string> = socket.jwt
+      ? { Authorization: `Bearer ${socket.jwt}` }
+      : {};
 
     let users: UserRecord[] = [];
 
@@ -92,7 +94,9 @@ export async function get_group_members_whereabouts(
   res: Response,
 ) {
   const jwt = get_jwt(req);
-  if (!jwt) {
+  const apiKey = get_api_key(req);
+
+  if (!jwt && !apiKey) {
     throw createHttpError(401, "Missing Authorization header");
   }
 
@@ -104,12 +108,16 @@ export async function get_group_members_whereabouts(
     throw createHttpError(400, "Group ID is required");
   }
 
+  const forwardHeaders: Record<string, string> = apiKey
+    ? { "x-api-key": apiKey }
+    : { authorization: `Bearer ${jwt!}` };
+
   let users = [];
   let total_of_users = 0;
 
   try {
     const url = `${GROUP_MANAGER_API_URL}/v3/groups/${group_id}/members`;
-    const headers = { authorization: `Bearer ${jwt}` };
+    const headers = forwardHeaders;
     const params = {
       batch_size: limit,
       start_index: skip,
