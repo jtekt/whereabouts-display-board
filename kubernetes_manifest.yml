@@ -33,3 +33,20 @@ spec:
   ports:
     - port: 80
       nodePort: ${K8S_NODEPORT_PORT}
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ${APPLICATION_NAME}
+spec:
+  rules:
+    - host: whereabouts-api.jtektrnd.net
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: ${APPLICATION_NAME}
+                port:
+                  number: 80
