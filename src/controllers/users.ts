@@ -1,7 +1,7 @@
 import axios from "axios";
 import { Request, Response } from "express";
 import createHttpError from "http-errors";
-import { io } from "../main";
+import { io } from "../index";
 import Whereabouts from "../models/whereabouts";
 import { get_id_of_item, get_jwt } from "../utils/extractors";
 import {

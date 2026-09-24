@@ -1,6 +1,6 @@
 import request from "supertest"
 import { expect } from "chai"
-import { http_server as app } from "../src/main.js"
+import { http_server as app } from "../src/index.js"
 
 describe("/", () => {
   before(async () => {

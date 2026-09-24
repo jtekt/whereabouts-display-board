@@ -1,11 +1,11 @@
 {
   "name": "whereabouts",
   "description": "",
-  "main": "dist/main.js",
+  "main": "dist/index.js",
   "scripts": {
     "build": "tsc",
-    "start": "node dist/main.js",
-    "dev": "tsx watch src/main.ts",
+    "start": "node dist/index.js",
+    "dev": "tsx watch src/index.ts",
     "test": "mocha",
     "coverage": "nyc mocha"
   },
