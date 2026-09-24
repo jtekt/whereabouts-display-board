@@ -1,6 +1,5 @@
 {
   "name": "whereabouts",
-  "version": "4.2.3",
   "description": "",
   "main": "dist/main.js",
   "scripts": {
