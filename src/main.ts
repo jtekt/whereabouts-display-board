@@ -1,5 +1,6 @@
 import "dotenv/config";
-import { version, author } from "../package.json";
+import { author } from "../package.json";
+const version = process.env.APP_VERSION || "dev";
 
 console.log(`行先掲示板 v${version}`);
 
