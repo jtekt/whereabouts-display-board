@@ -23,6 +23,7 @@ import {
   get_members_of_group,
 } from "./controllers/groups";
 import * as mongo from "./mongo";
+import healthRouter from "./health";
 import { authMiddleware } from "./middleware/httpAuth";
 
 const {
@@ -68,6 +69,7 @@ app.get("/", (_req: Request, res: Response) => {
   });
 });
 
+app.use("/health", healthRouter);
 app.use(authMiddleware());
 app.route("/groups/:group_id/whereabouts").get(get_group_members_whereabouts);
 app.route("/users/:user_id").patch(update_whereabouts).put(update_whereabouts);
